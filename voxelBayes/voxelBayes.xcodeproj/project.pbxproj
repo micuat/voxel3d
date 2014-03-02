@@ -739,10 +739,7 @@
 					"$(OF_CORE_LIBS)",
 					/usr/local/Cellar/dmd/2.063/libexec/lib/libphobos2.a,
 					/Users/naoto/Documents/scid/generated/libscid.a,
-					./src/core.o,
-					./src/matrix.o,
-					./src/types.o,
-					./src/wrapper.o,
+					./src/franco.a,
 					../../../addons/ofxOpenCv/libs/opencv/lib/osx/opencv.a,
 				);
 				SDKROOT = macosx;

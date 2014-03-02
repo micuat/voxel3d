@@ -44,13 +44,21 @@ private:
 	MatrixView!Timg _image; // transposed
 }
 
-class voxelLike(T) {
+class voxelLike(Tdim, Tpdf) {
 public:
 	this() {
 	}
+	void setDimensions(Tdim side, MatrixView!Tdim center, int numVoxel) {
+		_side = side;
+		_voxelSide = side / numVoxel;
+		_center = center.copy;
+		_numVoxel = numVoxel;
+		pdf.length = numVoxel;
+	}
 private:
-	int width;
-	int height;
-	int depth;
-	T[][][] pdf;
+	Tdim _side;
+	Tdim _voxelSide;
+	MatrixView!Tdim _center;
+	int _numVoxel;
+	Tpdf[] pdf;
 }

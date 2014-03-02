@@ -22,7 +22,7 @@ void testApp::setup(){
 		p[i].width = w;
 		p[i].height = h;
 		
-		ofLogVerbose() << ofMatrix4x4::getTransposedOf(P.at(i));
+		ofLogVerbose() << "\n" << ofMatrix4x4::getTransposedOf(P.at(i));
 	}
 	
 	displayChannel = 0;
