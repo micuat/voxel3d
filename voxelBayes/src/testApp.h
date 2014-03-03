@@ -6,21 +6,22 @@
 #define NUM_PERS 8
 
 extern "C" {
-	struct francoPhoto {
+	// float-ubyte
+	struct francoPhotofub {
 		float m[16];
 		int width;
 		int height;
 		uchar *image;
 	};
 	
-	struct francoVoxel {
-		int width;
-		int height;
-		int depth;
-		int *pdf;
+	// float
+	struct francoVoxelf {
+		float side;
+		int numVoxels;
+		float *pdf;
 	};
 	
-	struct francoVoxel francoReconstruct(struct francoPhoto *, int);
+	struct francoVoxelf francoReconstructfub(struct francoPhotofub *, int);
 };
 
 class testApp : public ofBaseApp{
@@ -48,7 +49,7 @@ class testApp : public ofBaseApp{
 	
 	vector<ofMatrix4x4> P;
 	vector<ofImage> images;
-	francoPhoto p[NUM_PERS];
+	francoPhotofub p[NUM_PERS];
 	int displayChannel;
 	bool doProcess;
 };

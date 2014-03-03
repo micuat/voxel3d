@@ -5,26 +5,11 @@ module franco.wrapper;
 import std.stdio;
 
 import scid.matrix;
-import franco.core;
 import franco.matrix;
 import franco.types;
 
-extern (C) struct francoPhoto {
-	float m[16];
-	int width;
-	int height;
-	ubyte *image;
-}
-
-extern (C) struct francoVoxel {
-	int width;
-	int height;
-	int depth;
-	int *pdf;
-}
-
-extern (C) francoVoxel francoReconstruct(francoPhoto *fp, int numPhoto) {
-	francoVoxel fVoxel;
+extern (C) francoVoxelf francoReconstructfub(francoPhotofub *fp, int numPhoto) {
+	francoVoxelf fVoxel;
 	
 	photoModel!(float, ubyte)[] models;
 	models.length = numPhoto;
@@ -34,7 +19,10 @@ extern (C) francoVoxel francoReconstruct(francoPhoto *fp, int numPhoto) {
 		models[i] = model;
 	}
 	
-	auto voxel = reconstruct!(float, float, ubyte)(models);
+	auto voxel = new voxelLike!(float, ubyte);
+	voxel.models = models;
+	voxel.reconstruct;
+	fVoxel = voxel.fVoxel;
 	
 	return fVoxel;
 }

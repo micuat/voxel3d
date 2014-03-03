@@ -36,8 +36,8 @@ void testApp::update(){
 			p[i].image = images.at(i).getPixels();
 		}
 		
-		francoVoxel v;
-		v = francoReconstruct(p, NUM_PERS);
+		francoVoxelf v;
+		v = francoReconstructfub(p, NUM_PERS);
 		
 		doProcess = false;
 	}		
