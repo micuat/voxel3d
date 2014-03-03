@@ -71,11 +71,42 @@ public:
 		pdf.length = numVoxels * numVoxels * numVoxels;
 	}
 	
+	MatrixView!Tmat indexToPosition(int index) {
+		Tmat[3] position;
+		position[0] = index % _numVoxels;
+		position[1] = (index / _numVoxels) % _numVoxels;
+		position[2] = index / (_numVoxels * _numVoxels);
+		position[] /= _voxelSide;
+		return point3!Tmat(position).add(_center);
+	}
+	
+	MatrixView!Tmat toHomogeneous(MatrixView!Tmat p) {
+		assert((p.rows == 2 || p.rows == 3) && (p.cols == 1));
+		
+		MatrixView!Tmat ph;
+		if(p.rows == 2) {
+			ph = matrix!Tmat(3, 1);
+			ph.array = p.array.dup;
+			ph.array.length = 3;
+			ph[2, 0] = 1.0;
+		} else if(p.rows == 3) {
+			ph = matrix!Tmat(4, 1);
+			ph.array = p.array.dup;
+			ph.array.length = 4;
+			ph[3, 0] = 1.0;
+		}
+		return ph;
+	}
+	
 	void reconstruct() {
 		foreach(int i, ref p; pdf) {
+			Tmat pFill = 1;
+			Tmat pNofill = 1;
 			foreach(ref model; _models) {
-//				project()
+				auto pixel = model.extrinsics.mul(toHomogeneous(indexToPosition(i)));
+				if(1000<i&&i<1002) pixel.writeln;
 			}
+			p = pFill / (pFill + pNofill);
 		}
 	}
 	
@@ -106,7 +137,7 @@ public:
 			diffxyz[] = maxxyz[] - minxyz[];
 			diffxyz.writeln;
 			
-			Tmat length;
+			Tmat length = 0;
 			int edgeDim;
 			foreach(int i; 0..2) {
 				if(diffxyz[i] > length) {
@@ -114,7 +145,6 @@ public:
 					length = diffxyz[i];
 				}
 			}
-			edgeDim.writeln;
 			// center is on the halfway of the edges
 			float[3] center;
 			foreach(int i; 0..3) {
@@ -122,8 +152,7 @@ public:
 				center[i] /= 2;
 			}
 			center.writeln;
-			
-			setDimensions(length, point3!Tmat(center), 200);
+			setDimensions(length, point3!Tmat(center), 50);
 		}
 		
 		francoVoxelf fVoxel() {
