@@ -15,15 +15,15 @@ MatrixView!(T) concatVertical(T)
 {
 	assert( m1.cols == m2.cols );
 	
-	ulong r = m1.rows + m2.rows;
-	ulong c = m1.cols;
+	auto r = m1.rows + m2.rows;
+	auto c = m1.cols;
 	auto m = matrix!T(r, c);
 	
-	foreach( ulong j; 0..c ) {
-		foreach( ulong i; 0..m1.rows ) {
+	foreach( typeof(c) j; 0..c ) {
+		foreach( typeof(m1.rows) i; 0..m1.rows ) {
 			m.array[i + j * r] = m1.array[i + j * m1.rows];
 		}
-		foreach( ulong i; 0..m2.rows ) {
+		foreach( typeof(m2.rows) i; 0..m2.rows ) {
 			m.array[i + m1.rows + j * r] = m2.array[i + j * m2.rows];
 		}
 	}
@@ -35,8 +35,8 @@ MatrixView!(T) concatHorizontal(T)
 {
 	assert( m1.rows == m2.rows );
 	
-	ulong r = m1.rows;
-	ulong c = m1.cols + m2.cols;
+	auto r = m1.rows;
+	auto c = m1.cols + m2.cols;
 	
 	T[] a;
 	a = cast(T[])m1.array ~ cast(T[])m2.array;
@@ -73,12 +73,12 @@ MatrixView!(T) sub(T)
 MatrixView!(T) mul(T)
 (const MatrixView!(T) m1, const MatrixView!(T) m2)
 {
-	ulong r = m1.rows;
-	ulong c = m2.cols;
+	auto r = m1.rows;
+	auto c = m2.cols;
 	T[] a;
 	a.length = r * c;
-	foreach( ulong j; 0..c ) {
-		foreach( ulong i; 0..r ) {
+	foreach( typeof(c) j; 0..c ) {
+		foreach( typeof(r) i; 0..r ) {
 			a[i + j * r] = 0;
 			foreach( size_t k; 0..m1.cols ) {
 				a[i + j * r] += m1.array[i + k * r] * m2.array[k + j * r];
@@ -93,7 +93,7 @@ MatrixView!(T) mul(T, T2)
 if( isBasicType!(T2) )
 {
 	T[] a = m.array.dup;
-	foreach( ulong i; 0..a.length ) {
+	foreach( typeof(a.length) i; 0..a.length ) {
 		a[i] = a[i] * scalar;
 	}
 	return MatrixView!(T)(a, m.rows, m.cols);
@@ -104,7 +104,7 @@ MatrixView!(T) div(T, T2)
 if( isBasicType!(T2) )
 {
 	T[] a = m.array.dup;
-	foreach( ulong i; 0..a.length ) {
+	foreach( typeof(a.length) i; 0..a.length ) {
 		a[i] = a[i] / scalar;
 	}
 	return MatrixView!(T)(a, m.rows, m.cols);
@@ -114,8 +114,8 @@ MatrixView!(T) t(T)
 (const MatrixView!(T) m)
 {
 	auto mt = matrix!(T)(m.cols, m.rows);
-	foreach( ulong j; 0..m.cols ) {
-		foreach( ulong i; 0..m.rows ) {
+	foreach( typeof(m.cols) j; 0..m.cols ) {
+		foreach( typeof(m.rows) i; 0..m.rows ) {
 			mt.array[j + i * mt.rows] = m.array[i + j * m.rows];
 		}
 	}
