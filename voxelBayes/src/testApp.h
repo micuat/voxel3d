@@ -8,7 +8,8 @@
 extern "C" {
 	// float-ubyte
 	struct francoPhotofub {
-		float m[16];
+		float intrinsics[9];
+		float extrinsics[12];
 		int width;
 		int height;
 		uchar *image;
@@ -47,7 +48,8 @@ class testApp : public ofBaseApp{
 	static const int h = 800;
 	static const int w = 1280;
 	
-	vector<ofMatrix4x4> P;
+	vector<ofMatrix4x4> Intr;
+	vector<ofMatrix4x4> Extr;
 	vector<ofImage> images;
 	francoPhotofub p[NUM_PERS];
 	int displayChannel;

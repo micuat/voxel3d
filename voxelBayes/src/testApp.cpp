@@ -6,23 +6,28 @@ void testApp::setup(){
 	
 	mesh.load("lofi-bunny.ply");
 	
-	P.resize(NUM_PERS);
+	Intr.resize(NUM_PERS);
+	Extr.resize(NUM_PERS);
 	
 	ofMatrix4x4 R, T;
+	float f = 1000;
+	float cx = w/2 + 0.5;
+	float cy = h/2 + 0.5;
 	
-	for( int i = 0; i < P.size(); i++ ) {
+	for( int i = 0; i < Extr.size(); i++ ) {
 		R.makeIdentityMatrix();
-		R.rotate(i * 360 / P.size(), 0, 1, 0);
+		R.rotate(i * 360 / Extr.size(), 0, 1, 0);
 		T.makeIdentityMatrix();
 		T.translate(0, 0, 1000);
-		P.at(i) = T * R;
-		for( int row = 0; row < 4; row++ )
-			for( int col = 0; col < 4; col++ )
-				p[i].m[row + 4*col] = P.at(i)(col, row);
-		p[i].width = w;
-		p[i].height = h;
+		Extr.at(i) = ofMatrix4x4::getTransposedOf(T * R);
+		ofMatrix4x4 proj(f, 0, cx, 0,
+						 0, f, cy, 0,
+						 0, 0, 1, 0,
+						 0, 0, 0, 0);
 		
-		ofLogVerbose() << "\n" << ofMatrix4x4::getTransposedOf(P.at(i));
+		Intr.at(i) = proj;
+		ofLogVerbose() << "\n" << Extr.at(i);
+		ofLogVerbose() << "\n" << proj * Extr.at(i);
 	}
 	
 	displayChannel = 0;
@@ -32,7 +37,15 @@ void testApp::setup(){
 //--------------------------------------------------------------
 void testApp::update(){
 	if( doProcess ) {
-		for( int i = 0; i < P.size(); i++ ) {
+		for( int i = 0; i < Intr.size(); i++ ) {
+			for( int row = 0; row < 3; row++ )
+				for( int col = 0; col < 3; col++ )
+					p[i].intrinsics[row + 3*col] = Intr.at(i)(row, col);
+			for( int row = 0; row < 3; row++ )
+				for( int col = 0; col < 4; col++ )
+					p[i].extrinsics[row + 3*col] = Extr.at(i)(row, col);
+			p[i].width = w;
+			p[i].height = h;
 			p[i].image = images.at(i).getPixels();
 		}
 		
@@ -58,8 +71,8 @@ void testApp::draw(){
 		
 		ofSetupScreenPerspective(w, h);
 		
-		float w = ofGetScreenWidth();
-		float h = ofGetScreenHeight();
+//		float w = ofGetScreenWidth();
+//		float h = ofGetScreenHeight();
 		glViewport(0, 0, w, h);
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
@@ -68,12 +81,13 @@ void testApp::draw(){
 		float cx = w/2 + 0.5;
 		float cy = h/2 + 0.5;
 		
-		float nearDist = 0.0001, farDist = 100000000.0;
+		float nearDist = 0.1, farDist = 10000.0;
 		
 		glFrustum(
 				  nearDist * (-cx) / fx, nearDist * (w - cx) / fx,
 				  nearDist * (cy - h) / fy, nearDist * (cy) / fy,
 				  nearDist, farDist);
+		
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 		gluLookAt(
@@ -82,13 +96,13 @@ void testApp::draw(){
 				  0, 1, 0);
 		
 		glMatrixMode(GL_PROJECTION);
-		glMultMatrixf(P.at(displayChannel-1).getInverse().getPtr());
+		glMultMatrixf(ofMatrix4x4::getTransposedOf(Extr.at(displayChannel-1)).getInverse().getPtr());
 		mesh.drawFaces();
 		ofImage image;
 		image.allocate(w, h, OF_IMAGE_GRAYSCALE);
 		image.grabScreen(0, 0, w, h);
 		image.setImageType(OF_IMAGE_GRAYSCALE);
-		//image.saveImage(ofToString(displayChannel) + ".png");
+		image.saveImage(ofToString(displayChannel) + ".png");
 		images.push_back(image);
 		displayChannel++;
 		if( displayChannel > NUM_PERS ) {

@@ -8,7 +8,8 @@ import scid.matrix;
 import franco.matrix;
 
 extern (C) struct francoPhotofub {
-	float m[16];
+	float intrinsics[9];
+	float extrinsics[12];
 	int width;
 	int height;
 	ubyte *image;
@@ -30,8 +31,19 @@ public:
 	}
 	
 	void setFromFrancoPhoto(in ref francoPhotofub fp) {
-		_m = matrix!Tmat(4, 4);
-		_m.array = fp.m.dup;
+		_intrinsics = matrix!Tmat(3, 3);
+		_intrinsics.array = fp.intrinsics.dup;
+		_extrinsics = matrix!Tmat(3, 4);
+		_extrinsics.array = fp.extrinsics.dup;
+		
+		auto extrinsics4x4 = _extrinsics.concatVertical(MatrixView!Tmat([0, 0, 0, 1], 1, 4));
+		auto extrinsicsInv4x4 = extrinsics4x4.inv;
+		_extrinsicsInv = matrix!Tmat(3, 4);
+		foreach(int i; 0..3) {
+			foreach(int j; 0..4) {
+				_extrinsicsInv[i, j] = extrinsicsInv4x4[i, j];
+			}
+		}
 		
 		int w = fp.width;
 		int h = fp.height;
@@ -40,11 +52,14 @@ public:
 	}
 	
 	@property {
-		MatrixView!Tmat extrinsics() const {
-			return _m.copy;
+		MatrixView!Tmat intrinsics() const {
+			return _intrinsics.copy;
 		}
-		void extrinsics(MatrixView!Tmat m) {
-			_m = m;
+		MatrixView!Tmat extrinsics() const {
+			return _extrinsics.copy;
+		}
+		MatrixView!Tmat projection() const {
+			return _intrinsics.mul(_extrinsicsInv);
 		}
 		MatrixView!Timg image() const {
 			return _image.copy;
@@ -52,7 +67,9 @@ public:
 	}
 	
 private:
-	MatrixView!Tmat _m;
+	MatrixView!Tmat _intrinsics;
+	MatrixView!Tmat _extrinsics;
+	MatrixView!Tmat _extrinsicsInv;
 	MatrixView!Timg _image; // transposed
 }
 
@@ -103,8 +120,9 @@ public:
 			Tmat pFill = 1;
 			Tmat pNofill = 1;
 			foreach(ref model; _models) {
-				auto pixel = model.extrinsics.mul(toHomogeneous(indexToPosition(i)));
-				if(1000<i&&i<1002) pixel.writeln;
+				auto pixel = model.projection.mul(toHomogeneous(indexToPosition(i)));
+				if(i == 50*50*50/2+3) pixel.div(pixel[2,0]).writeln;
+				if(i == 50*50*50/2+3*51) pixel.div(pixel[2,0]).writeln;
 			}
 			p = pFill / (pFill + pNofill);
 		}

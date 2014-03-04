@@ -15,7 +15,9 @@ extern (C) francoVoxelf francoReconstructfub(francoPhotofub *fp, int numPhoto) {
 	models.length = numPhoto;
 	foreach(int i; 0..numPhoto) {
 		auto model = new photoModel!(float, ubyte)(fp[i]);
+		model.intrinsics.writeln;
 		model.extrinsics.writeln;
+		model.projection.writeln;
 		models[i] = model;
 	}
 	

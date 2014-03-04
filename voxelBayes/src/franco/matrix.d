@@ -4,6 +4,7 @@ module franco.matrix;
 
 import std.traits;
 import scid.matrix;
+import scid.linalg;
 
 version(unittest) {
     import scid.core.testing; 
@@ -122,6 +123,13 @@ MatrixView!(T) t(T)
 	return mt;
 }
 
+MatrixView!(T) inv(T)
+(const MatrixView!(T) m)
+{
+	auto minv = m.copy;
+	invert(minv);
+	return minv;
+}
 unittest
 {
 	auto m = matrix!real(3, 3, 2.5);
