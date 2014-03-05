@@ -5,14 +5,22 @@ void testApp::setup(){
 	ofSetLogLevel(OF_LOG_VERBOSE);
 	
 	mesh.load("lofi-bunny.ply");
+	backImage.loadImage("background.jpg");
 	
 	Intr.resize(NUM_PERS);
 	Extr.resize(NUM_PERS);
 	
 	ofMatrix4x4 R, T;
-	float f = 1500;
-	float cx = w/2 + 0.5;
-	float cy = h/2 + 0.5;
+	
+	f = 1500;
+	fx = f;
+	fy = f;
+	cx = w/2 + 0.5;
+	cy = h/2 + 0.5;
+	
+	nearDist = 0.1;
+	farDist = 10000.0;
+	
 	
 	for( int i = 0; i < Extr.size(); i++ ) {
 		ofMatrix4x4 pre;
@@ -36,9 +44,24 @@ void testApp::setup(){
 		ofLogVerbose() << "\n" << proj * Extr.at(i);
 	}
 	
+	float hside = 4000;
+//	background = ofMesh::box(side, side, side);
+	background.setMode(OF_PRIMITIVE_TRIANGLE_STRIP);
+	background.addVertex(ofVec3f(-hside,  hside, -hside));
+	background.addVertex(ofVec3f( hside,  hside, -hside));
+	background.addVertex(ofVec3f( hside, -hside, -hside));
+	background.addVertex(ofVec3f(-hside, -hside, -hside));
+	background.addVertex(ofVec3f(-hside,  hside, -hside));
+	background.addTexCoord(ofVec2f(0, 0));
+	background.addTexCoord(ofVec2f(backImage.getWidth(), 0));
+	background.addTexCoord(ofVec2f(backImage.getWidth(), backImage.getHeight()));
+	background.addTexCoord(ofVec2f(0, backImage.getHeight()));
+	background.addTexCoord(ofVec2f(0, 0));
+	
 	displayChannel = 0;
 	doProcess = false;
-	drawMesh = true;
+	drawForeground = true;
+	drawBackground = true;
 }
 
 //--------------------------------------------------------------
@@ -81,6 +104,64 @@ void testApp::update(){
 	}		
 }
 
+void testApp::drawMeshes(bool wire, bool fore, bool back) {
+	if( fore ) {
+		ofPushStyle();
+		ofSetColor(50, 10, 240);
+		
+		ofPushMatrix();
+		ofTranslate(200, 0, 0);
+		if( wire ) mesh.drawWireframe();
+		else mesh.drawFaces();
+		ofPopMatrix();
+		
+		ofPushMatrix();
+		ofTranslate(-200, 0, 0);
+		if( wire ) mesh.drawWireframe();
+		else mesh.drawFaces();
+		ofPopMatrix();
+		
+		ofPopStyle();
+	}
+	
+	voxel.drawVertices();
+	
+	if( back ) {
+		ofPushMatrix();
+		backImage.bind();
+		for( int i = 0; i < 4; i++ ) {
+			background.drawFaces();
+			ofRotate(90, 0, 1, 0);
+		}
+		backImage.unbind();
+		ofPopMatrix();
+	}
+}
+
+void testApp::drawCameras() {
+	for( int i = 0; i < Extr.size(); i++ ) {
+		ofPushMatrix();
+		glMultMatrixf(ofMatrix4x4::getTransposedOf(Extr.at(i)).getPtr());
+		ofDrawAxis(100);
+		
+		ofMatrix4x4 frustumMatrix;
+		float nearDist = 50.0, farDist = 200.0;
+		frustumMatrix.makeFrustumMatrix(nearDist * (-cx) / fx, nearDist * (w - cx) / fx,
+										nearDist * (cy - h) / fy, nearDist * (cy) / fy,
+										nearDist, farDist);
+		frustumMatrix = frustumMatrix.getInverse();
+		ofMultMatrix(frustumMatrix);
+		ofLine(-1, -1, -1, -1, -1, 1);
+		ofLine(1, -1, -1, 1, -1, 1);
+		ofLine(-1, 1, -1, -1, 1, 1);
+		ofLine(1, 1, -1, 1, 1, 1);
+		ofNoFill();
+		ofRect(-1, -1, 1, 2, 2);
+		ofRect(-1, -1, -1, 2, 2);
+		ofPopMatrix();
+	}
+}	
+
 //--------------------------------------------------------------
 void testApp::draw(){
 	ofEnableDepthTest();
@@ -88,58 +169,12 @@ void testApp::draw(){
 	ofBackground(0);
 	ofSetColor(255);
 	
-	float f = 1500;
-	
-	float fx = f;
-	float fy = f;
-	float cx = w/2 + 0.5;
-	float cy = h/2 + 0.5;
-	
-	float nearDist = 0.1, farDist = 10000.0;
-	
 	if( displayChannel == 0 ) {
 		cam.begin();
 		
-		if( drawMesh ) {
-			ofPushStyle();
-			ofSetColor(50, 10, 240);
-			
-			ofPushMatrix();
-			ofTranslate(200, 0, 0);
-			mesh.drawWireframe();
-			ofPopMatrix();
-			
-			ofPushMatrix();
-			ofTranslate(-200, 0, 0);
-			mesh.drawWireframe();
-			ofPopMatrix();
-			
-			ofPopStyle();
-		}
+		drawMeshes(true, drawForeground, drawBackground);
 		
-		voxel.drawVertices();
-		
-		for( int i = 0; i < Extr.size(); i++ ) {
-			ofPushMatrix();
-			glMultMatrixf(ofMatrix4x4::getTransposedOf(Extr.at(i)).getPtr());
-			ofDrawAxis(100);
-			
-			ofMatrix4x4 frustumMatrix;
-			float nearDist = 50.0, farDist = 200.0;
-			frustumMatrix.makeFrustumMatrix(nearDist * (-cx) / fx, nearDist * (w - cx) / fx,
-											nearDist * (cy - h) / fy, nearDist * (cy) / fy,
-											nearDist, farDist);
-			frustumMatrix = frustumMatrix.getInverse();
-			ofMultMatrix(frustumMatrix);
-			ofLine(-1, -1, -1, -1, -1, 1);
-			ofLine(1, -1, -1, 1, -1, 1);
-			ofLine(-1, 1, -1, -1, 1, 1);
-			ofLine(1, 1, -1, 1, 1, 1);
-			ofNoFill();
-			ofRect(-1, -1, 1, 2, 2);
-			ofRect(-1, -1, -1, 2, 2);
-			ofPopMatrix();
-		}
+		drawCameras();
 		
 		cam.end();
 	} else {
@@ -169,15 +204,7 @@ void testApp::draw(){
 		ofTranslate(rRand(20), rRand(20), rRand(20));
 		ofRotate(rRand(10), ofRandom(1), ofRandom(1), ofRandom(1));
 		
-		ofPushMatrix();
-		ofTranslate(200, 0, 0);
-		mesh.drawFaces();
-		ofPopMatrix();
-		
-		ofPushMatrix();
-		ofTranslate(-200, 0, 0);
-		mesh.drawFaces();
-		ofPopMatrix();
+		drawMeshes(false, true, false);
 		
 		ofImage image;
 		image.allocate(w, h, OF_IMAGE_GRAYSCALE);
@@ -201,7 +228,10 @@ void testApp::keyPressed(int key){
 	}
 	
 	if( key == 'd' ) {
-		drawMesh = !drawMesh;
+		drawForeground = !drawForeground;
+	}
+	if( key == 'f' ) {
+		drawBackground = !drawBackground;
 	}
 }
 

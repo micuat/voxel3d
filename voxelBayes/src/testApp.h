@@ -51,9 +51,13 @@ class testApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
 		
 	inline float rRand(float r) {return ofRandom(2*r)-r;}
+	void drawMeshes(bool, bool, bool);
+	void drawCameras();
 	
 	ofVboMesh mesh;
 	ofVboMesh voxel;
+	ofVboMesh background;
+	ofImage backImage;
 	ofEasyCam cam;
 	
 	static const int h = 800;
@@ -65,5 +69,14 @@ class testApp : public ofBaseApp{
 	francoPhotofub p[NUM_PERS];
 	int displayChannel;
 	bool doProcess;
-	bool drawMesh;
+	bool drawForeground, drawBackground;
+	
+	float f;
+	
+	float fx;
+	float fy;
+	float cx;
+	float cy;
+	
+	float nearDist, farDist;
 };
