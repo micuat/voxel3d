@@ -23,6 +23,14 @@ void testApp::setup(){
 	
 	
 	for( int i = 0; i < Extr.size(); i++ ) {
+		ofMatrix4x4 proj(f, 0, cx, 0,
+						 0, f, cy, 0,
+						 0, 0, 1, 0,
+						 0, 0, 0, 0);
+		
+		Intr.at(i) = proj;
+	}		
+	for( int i = 0; i < Extr.size() - 1; i++ ) {
 		ofMatrix4x4 pre;
 		pre.makeIdentityMatrix();
 		if(i % 2 == 0) {
@@ -30,21 +38,18 @@ void testApp::setup(){
 			pre.translate(0, 750, 0);
 		}
 		R.makeIdentityMatrix();
-		R.rotate(i * 360 / Extr.size(), 0, 1, 0);
+		R.rotate(i * 360 / (Extr.size() - 1), 0, 1, 0);
 		T.makeIdentityMatrix();
 		T.translate(0, 0, 1500);
 		Extr.at(i) = ofMatrix4x4::getTransposedOf(pre * T * R);
-		ofMatrix4x4 proj(f, 0, cx, 0,
-						 0, f, cy, 0,
-						 0, 0, 1, 0,
-						 0, 0, 0, 0);
-		
-		Intr.at(i) = proj;
-		ofLogVerbose() << "\n" << Extr.at(i);
-		ofLogVerbose() << "\n" << proj * Extr.at(i);
 	}
+	R.makeIdentityMatrix();
+	R.rotate(-90, 1, 0, 0);
+	T.makeIdentityMatrix();
+	T.translate(0, 1500, 0);
+	Extr.at(Extr.size() - 1) = ofMatrix4x4::getTransposedOf(R * T);
 	
-	float hside = 4000;
+	float hside = 2000;
 //	background = ofMesh::box(side, side, side);
 	background.setMode(OF_PRIMITIVE_TRIANGLE_STRIP);
 	background.addVertex(ofVec3f(-hside,  hside, -hside));
