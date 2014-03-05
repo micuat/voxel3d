@@ -17,14 +17,14 @@ void testApp::setup(){
 	for( int i = 0; i < Extr.size(); i++ ) {
 		ofMatrix4x4 pre;
 		pre.makeIdentityMatrix();
-//		if(i % 2 == 0) {
-//			pre.rotate(-45, 1, 0, 0);
-//			pre.translate(0, 1000, 0);
-//		}
+		if(i % 2 == 0) {
+			pre.rotate(-30, 1, 0, 0);
+			pre.translate(0, 750, 0);
+		}
 		R.makeIdentityMatrix();
 		R.rotate(i * 360 / Extr.size(), 0, 1, 0);
 		T.makeIdentityMatrix();
-		T.translate(0, 0, 1000);
+		T.translate(0, 0, 1500);
 		Extr.at(i) = ofMatrix4x4::getTransposedOf(pre * T * R);
 		ofMatrix4x4 proj(f, 0, cx, 0,
 						 0, f, cy, 0,
@@ -84,6 +84,7 @@ void testApp::update(){
 //--------------------------------------------------------------
 void testApp::draw(){
 	ofEnableDepthTest();
+	glPointSize(2);
 	ofBackground(0);
 	ofSetColor(255);
 	
@@ -102,7 +103,17 @@ void testApp::draw(){
 		if( drawMesh ) {
 			ofPushStyle();
 			ofSetColor(50, 10, 240);
+			
+			ofPushMatrix();
+			ofTranslate(200, 0, 0);
 			mesh.drawWireframe();
+			ofPopMatrix();
+			
+			ofPushMatrix();
+			ofTranslate(-200, 0, 0);
+			mesh.drawWireframe();
+			ofPopMatrix();
+			
 			ofPopStyle();
 		}
 		
@@ -157,7 +168,17 @@ void testApp::draw(){
 		glMultMatrixf(ofMatrix4x4::getTransposedOf(Extr.at(displayChannel-1)).getInverse().getPtr());
 		ofTranslate(rRand(20), rRand(20), rRand(20));
 		ofRotate(rRand(10), ofRandom(1), ofRandom(1), ofRandom(1));
+		
+		ofPushMatrix();
+		ofTranslate(200, 0, 0);
 		mesh.drawFaces();
+		ofPopMatrix();
+		
+		ofPushMatrix();
+		ofTranslate(-200, 0, 0);
+		mesh.drawFaces();
+		ofPopMatrix();
+		
 		ofImage image;
 		image.allocate(w, h, OF_IMAGE_GRAYSCALE);
 		image.grabScreen(0, 0, w, h);

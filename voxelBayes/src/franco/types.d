@@ -146,17 +146,21 @@ public:
 		foreach(int i, ref p; pdf) {
 			Tmat pFill = 1;
 			Tmat pNofill = 1;
-			bool isUpdated = false;
+			uint updateCount;
 			foreach(ref model; _models) {
 				auto pixel = model.projection.mul(toHomogeneous(indexToPosition(i)));
-				if( pixel[2, 0] < 0 ) {
-					//"negative projection depth".writeln;
-					//continue;
-				}
 				int x = cast(int)(pixel[0, 0] / pixel[2, 0]);
 				int y = cast(int)(pixel[1, 0] / pixel[2, 0]);
 				
+				if(pixel[2, 0] > 0) {
+					continue;
+				}
+				
 				auto ns = neighbors(x, y, model.w, model.h);
+				
+				if(ns.length > 0) {
+					updateCount++;
+				}
 				
 				foreach(ref neighbor; ns) {
 					// due to limitation of floating point range, use only the ratio
@@ -167,12 +171,10 @@ public:
 					p1 = _pD * (1.0 / 255) + (1 - _pD) * ((255 - model.getPixel(neighbor)) / 255);
 					p0 = ((_pD + _pFA) * (1.0 / 255) + (2 - _pD - _pFA) * ((255 - model.getPixel(neighbor)) / 255)) * 0.5;
 					pFill *= p1 / p0;
-					isUpdated = true;
 				}
-//				pFill /= ns.length*ns.length;
-//				pNofill /= ns.length*ns.length;
 			}
-			if( isUpdated == true ) {
+			// just one perspective is not sufficient
+			if(updateCount > 1) {
 				p = pFill / (pFill + pNofill);
 			} else {
 				p = 0;
@@ -236,12 +238,14 @@ public:
 					length = diffxyz[i];
 				}
 			}
-			// center is on the halfway of the edges
-			float[3] center;
+			// center is on the centroid
+			Tmat[3] center = [0, 0, 0];
 			foreach(int i; 0..3) {
-				center[i] = maxModel[edgeDim].extrinsics[i, 3] + minModel[edgeDim].extrinsics[i, 3];
-				center[i] /= 2;
+				foreach(ref model; _models) {
+					center[i] += model.extrinsics[i, 3];
+				}
 			}
+			center[] /= _models.length;
 			center.writeln;
 			setDimensions(length * 0.5, point3!Tmat(center), 50);
 		}
