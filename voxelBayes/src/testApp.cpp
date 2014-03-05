@@ -52,6 +52,20 @@ void testApp::update(){
 		francoVoxelf v;
 		v = francoReconstructfub(p, NUM_PERS);
 		
+		ofVec3f center(v.center[0], v.center[1], v.center[2]);
+		int n = v.numVoxels;
+		for( int i = 0; i < n*n*n; i++ ) {
+			float p = *(v.pdf + i);
+			if( p > 0.5 ) {
+				ofVec3f pos;
+				pos.x = i % n;
+				pos.y = (i / n) % n;
+				pos.z = i / (n * n);
+				voxel.addVertex((pos * v.side / v.numVoxels) + center);
+				voxel.addColor(p * 255);
+			}
+		}
+		
 		doProcess = false;
 	}		
 }
@@ -63,7 +77,8 @@ void testApp::draw(){
 	
 	if( displayChannel == 0 ) {
 		cam.begin();
-		mesh.drawFaces();
+		//mesh.drawFaces();
+		voxel.drawVertices();
 		cam.end();
 	} else {
 		

@@ -19,6 +19,7 @@ extern "C" {
 	struct francoVoxelf {
 		float side;
 		int numVoxels;
+		float center[3];
 		float *pdf;
 	};
 	
@@ -43,6 +44,7 @@ class testApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
 		
 	ofVboMesh mesh;
+	ofVboMesh voxel;
 	ofEasyCam cam;
 	
 	static const int h = 800;

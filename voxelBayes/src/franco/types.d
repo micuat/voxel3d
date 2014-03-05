@@ -18,6 +18,7 @@ extern (C) struct francoPhotofub {
 extern (C) struct francoVoxelf {
 	float side;
 	int numVoxels;
+	float center[3];
 	float *pdf;
 }
 
@@ -51,7 +52,22 @@ public:
 		_image.array[0..h*w] = fp.image[0..h*w];
 	}
 	
+	// image is transposed
+	Timg getPixel(MatrixView!Tmat pixel) {
+		return _image[cast(uint)pixel[0, 0], cast(uint)pixel[1, 0]];
+	}
+	
+	Timg getPixel(int x, int y) {
+		return _image[x, y];
+	}
+	
 	@property {
+		uint w() const {
+			return _image.rows;
+		}
+		uint h() const {
+			return _image.cols;
+		}
 		MatrixView!Tmat intrinsics() const {
 			return _intrinsics.copy;
 		}
@@ -93,7 +109,7 @@ public:
 		position[0] = index % _numVoxels;
 		position[1] = (index / _numVoxels) % _numVoxels;
 		position[2] = index / (_numVoxels * _numVoxels);
-		position[] /= _voxelSide;
+		position[] *= _voxelSide;
 		return point3!Tmat(position).add(_center);
 	}
 	
@@ -121,8 +137,13 @@ public:
 			Tmat pNofill = 1;
 			foreach(ref model; _models) {
 				auto pixel = model.projection.mul(toHomogeneous(indexToPosition(i)));
-				if(i == 50*50*50/2+3) pixel.div(pixel[2,0]).writeln;
-				if(i == 50*50*50/2+3*51) pixel.div(pixel[2,0]).writeln;
+				int x = cast(int)(pixel[0, 0] / pixel[2, 0]);
+				int y = cast(int)(pixel[1, 0] / pixel[2, 0]);
+				if( x >= 0 && y >= 0 && x < model.w && y < model.h ) {
+					if( model.getPixel(x, y) > 128)
+						pFill *= 1.2;
+						pNofill *= 0.8;
+				}
 			}
 			p = pFill / (pFill + pNofill);
 		}
@@ -177,6 +198,9 @@ public:
 			francoVoxelf fv;
 			fv.side = _side;
 			fv.numVoxels = _numVoxels;
+			fv.center[0] = _center[0, 0];
+			fv.center[1] = _center[1, 0];
+			fv.center[2] = _center[2, 0];
 			fv.pdf = pdf.ptr;
 			return fv;
 		}
