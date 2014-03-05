@@ -53,7 +53,7 @@ void testApp::update(){
 		francoParamf fparam;
 		fparam.pD = 0.9;
 		fparam.pFA = 0.1;
-		fparam.k = 1;
+		fparam.k = 3;
 		francoVoxelf v;
 		v = francoReconstructfub(p, NUM_PERS, fparam);
 		

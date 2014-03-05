@@ -63,6 +63,10 @@ public:
 		return _image[cast(uint)pixel[0, 0], cast(uint)pixel[1, 0]];
 	}
 	
+	Timg getPixel(MatrixView!int pixel) {
+		return _image[cast(uint)pixel[0, 0], cast(uint)pixel[1, 0]];
+	}
+	
 	Timg getPixel(int x, int y) {
 		return _image[x, y];
 	}
@@ -97,7 +101,8 @@ private:
 
 class voxelLike(Tmat, Timg) {
 public:
-	Tmat _pD, _pFA, _k;
+	Tmat _pD, _pFA;
+	int _k;
 	
 	this() {
 	}
@@ -150,11 +155,22 @@ public:
 				}
 				int x = cast(int)(pixel[0, 0] / pixel[2, 0]);
 				int y = cast(int)(pixel[1, 0] / pixel[2, 0]);
-				if( x >= 0 && y >= 0 && x < model.w && y < model.h ) {
-					pFill *= _pD * (1.0 / 255) + (1 - _pD) * ((255 - model.getPixel(x, y)) / 255);
-					pNofill *= ((_pD + _pFA) * (1.0 / 255) + (2 - _pD - _pFA) * ((255 - model.getPixel(x, y)) / 255)) * 0.5;
+				
+				auto ns = neighbors(x, y, model.w, model.h);
+				
+				foreach(ref neighbor; ns) {
+					// due to limitation of floating point range, use only the ratio
+					// originally:
+					// pFill *= p1
+					// pNofill *= p0
+					Tmat p1, p0;
+					p1 = _pD * (1.0 / 255) + (1 - _pD) * ((255 - model.getPixel(neighbor)) / 255);
+					p0 = ((_pD + _pFA) * (1.0 / 255) + (2 - _pD - _pFA) * ((255 - model.getPixel(neighbor)) / 255)) * 0.5;
+					pFill *= p1 / p0;
 					isUpdated = true;
 				}
+//				pFill /= ns.length*ns.length;
+//				pNofill /= ns.length*ns.length;
 			}
 			if( isUpdated == true ) {
 				p = pFill / (pFill + pNofill);
@@ -162,6 +178,21 @@ public:
 				p = 0;
 			}
 		}
+	}
+	
+	MatrixView!int[] neighbors(int cx, int cy, int w, int h) {
+		MatrixView!int[] ns;
+		int halfk = (_k - 1) / 2;
+		
+		foreach(int y; cy-halfk..cy+halfk+1) {
+			foreach(int x; cx-halfk..cx+halfk+1) {
+				if( x >= 0 && y >= 0 && x < w && y < h ) {
+					ns ~= point2!int([x, y]);
+				}
+			}
+		}
+		
+		return ns;
 	}
 	
 	@property {
@@ -212,7 +243,7 @@ public:
 				center[i] /= 2;
 			}
 			center.writeln;
-			setDimensions(length, point3!Tmat(center), 50);
+			setDimensions(length * 0.5, point3!Tmat(center), 50);
 		}
 		
 		francoVoxelf fVoxel() {
@@ -226,6 +257,7 @@ public:
 			return fv;
 		}
 	}
+	
 private:
 	photoModel!(Tmat, Timg)[] _models;
 	Tmat _side;
