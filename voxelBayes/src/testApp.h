@@ -50,6 +50,8 @@ class testApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 		
+	inline float rRand(float r) {return ofRandom(2*r)-r;}
+	
 	ofVboMesh mesh;
 	ofVboMesh voxel;
 	ofEasyCam cam;

@@ -15,11 +15,17 @@ void testApp::setup(){
 	float cy = h/2 + 0.5;
 	
 	for( int i = 0; i < Extr.size(); i++ ) {
+		ofMatrix4x4 pre;
+		pre.makeIdentityMatrix();
+//		if(i % 2 == 0) {
+//			pre.rotate(-45, 1, 0, 0);
+//			pre.translate(0, 1000, 0);
+//		}
 		R.makeIdentityMatrix();
 		R.rotate(i * 360 / Extr.size(), 0, 1, 0);
 		T.makeIdentityMatrix();
 		T.translate(0, 0, 1000);
-		Extr.at(i) = ofMatrix4x4::getTransposedOf(T * R);
+		Extr.at(i) = ofMatrix4x4::getTransposedOf(pre * T * R);
 		ofMatrix4x4 proj(f, 0, cx, 0,
 						 0, f, cy, 0,
 						 0, 0, 1, 0,
@@ -67,7 +73,7 @@ void testApp::update(){
 				pos.y = (i / n) % n - n / 2;
 				pos.z = i / (n * n) - n / 2;
 				voxel.addVertex((pos * v.side / v.numVoxels) + center);
-				voxel.addColor(ofFloatColor(p));
+				voxel.addColor(ofFloatColor(p * 2 - 1));
 			}
 		}
 		
@@ -149,6 +155,8 @@ void testApp::draw(){
 		
 		glMatrixMode(GL_PROJECTION);
 		glMultMatrixf(ofMatrix4x4::getTransposedOf(Extr.at(displayChannel-1)).getInverse().getPtr());
+		ofTranslate(rRand(20), rRand(20), rRand(20));
+		ofRotate(rRand(10), ofRandom(1), ofRandom(1), ofRandom(1));
 		mesh.drawFaces();
 		ofImage image;
 		image.allocate(w, h, OF_IMAGE_GRAYSCALE);
