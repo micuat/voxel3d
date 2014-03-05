@@ -32,6 +32,7 @@ void testApp::setup(){
 	
 	displayChannel = 0;
 	doProcess = false;
+	drawMesh = true;
 }
 
 //--------------------------------------------------------------
@@ -66,7 +67,7 @@ void testApp::update(){
 				pos.y = (i / n) % n - n / 2;
 				pos.z = i / (n * n) - n / 2;
 				voxel.addVertex((pos * v.side / v.numVoxels) + center);
-				voxel.addColor(ofFloatColor(p));
+				voxel.addColor(ofFloatColor(p, 0.1, 0.9));
 			}
 		}
 		
@@ -91,10 +92,13 @@ void testApp::draw(){
 	
 	if( displayChannel == 0 ) {
 		cam.begin();
-		ofPushStyle();
-		ofSetColor(50, 10, 240);
-		mesh.drawWireframe();
-		ofPopStyle();
+		
+		if( drawMesh ) {
+			ofPushStyle();
+			ofSetColor(50, 10, 240);
+			mesh.drawWireframe();
+			ofPopStyle();
+		}
 		
 		voxel.drawVertices();
 		
@@ -165,6 +169,10 @@ void testApp::keyPressed(int key){
 	if( key == ' ' ) {
 		images.clear();
 		displayChannel = (displayChannel + 1);
+	}
+	
+	if( key == 'd' ) {
+		drawMesh = !drawMesh;
 	}
 }
 

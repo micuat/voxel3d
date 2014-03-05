@@ -151,11 +151,9 @@ public:
 				int x = cast(int)(pixel[0, 0] / pixel[2, 0]);
 				int y = cast(int)(pixel[1, 0] / pixel[2, 0]);
 				if( x >= 0 && y >= 0 && x < model.w && y < model.h ) {
-					if( model.getPixel(x, y) > 128) {
-						pFill *= 1.1;
-						pNofill *= 0.9;
-						isUpdated = true;
-					}
+					pFill *= _pD * (1.0 / 255) + (1 - _pD) * ((255 - model.getPixel(x, y)) / 255);
+					pNofill *= ((_pD + _pFA) * (1.0 / 255) + (2 - _pD - _pFA) * ((255 - model.getPixel(x, y)) / 255)) * 0.5;
+					isUpdated = true;
 				}
 			}
 			if( isUpdated == true ) {

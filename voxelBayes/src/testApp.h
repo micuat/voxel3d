@@ -63,4 +63,5 @@ class testApp : public ofBaseApp{
 	francoPhotofub p[NUM_PERS];
 	int displayChannel;
 	bool doProcess;
+	bool drawMesh;
 };
