@@ -15,6 +15,12 @@ extern (C) struct francoPhotofub {
 	ubyte *image;
 }
 
+extern (C) struct francoParamf {
+	float pD;
+	float pFA;
+	int k;
+}
+
 extern (C) struct francoVoxelf {
 	float side;
 	int numVoxels;
@@ -91,7 +97,7 @@ private:
 
 class voxelLike(Tmat, Timg) {
 public:
-	Tmat pD, pFA, k;
+	Tmat _pD, _pFA, _k;
 	
 	this() {
 	}
@@ -161,6 +167,12 @@ public:
 	}
 	
 	@property {
+		void parameters(francoParamf fparam) {
+			_pD = fparam.pD;
+			_pFA = fparam.pFA;
+			_k = fparam.k;
+		}
+		
 		// set model pointer and initialize
 		void models(photoModel!(Tmat, Timg)[] m) {
 			_models = m;

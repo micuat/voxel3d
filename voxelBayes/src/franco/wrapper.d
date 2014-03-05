@@ -8,7 +8,7 @@ import scid.matrix;
 import franco.matrix;
 import franco.types;
 
-extern (C) francoVoxelf francoReconstructfub(francoPhotofub *fp, int numPhoto) {
+extern (C) francoVoxelf francoReconstructfub(francoPhotofub *fp, int numPhoto, francoParamf fparam) {
 	francoVoxelf fVoxel;
 	
 	photoModel!(float, ubyte)[] models;
@@ -23,6 +23,7 @@ extern (C) francoVoxelf francoReconstructfub(francoPhotofub *fp, int numPhoto) {
 	
 	auto voxel = new voxelLike!(float, ubyte);
 	voxel.models = models;
+	voxel.parameters = fparam;
 	voxel.reconstruct;
 	fVoxel = voxel.fVoxel;
 	

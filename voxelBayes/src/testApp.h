@@ -16,6 +16,13 @@ extern "C" {
 	};
 	
 	// float
+	struct francoParamf {
+		float pD;
+		float pFA;
+		int k;
+	};
+	
+	// float
 	struct francoVoxelf {
 		float side;
 		int numVoxels;
@@ -23,7 +30,7 @@ extern "C" {
 		float *pdf;
 	};
 	
-	struct francoVoxelf francoReconstructfub(struct francoPhotofub *, int);
+	struct francoVoxelf francoReconstructfub(struct francoPhotofub *, int, struct francoParamf);
 };
 
 class testApp : public ofBaseApp{

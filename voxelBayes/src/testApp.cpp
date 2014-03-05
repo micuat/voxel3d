@@ -49,8 +49,12 @@ void testApp::update(){
 			p[i].image = images.at(i).getPixels();
 		}
 		
+		francoParamf fparam;
+		fparam.pD = 0.9;
+		fparam.pFA = 0.1;
+		fparam.k = 1;
 		francoVoxelf v;
-		v = francoReconstructfub(p, NUM_PERS);
+		v = francoReconstructfub(p, NUM_PERS, fparam);
 		
 		ofVec3f center(v.center[0], v.center[1], v.center[2]);
 		int n = v.numVoxels;
