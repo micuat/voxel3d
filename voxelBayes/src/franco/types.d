@@ -106,9 +106,9 @@ public:
 	
 	MatrixView!Tmat indexToPosition(int index) {
 		Tmat[3] position;
-		position[0] = index % _numVoxels;
-		position[1] = (index / _numVoxels) % _numVoxels;
-		position[2] = index / (_numVoxels * _numVoxels);
+		position[0] = index % _numVoxels - _numVoxels / 2;
+		position[1] = (index / _numVoxels) % _numVoxels - _numVoxels / 2;
+		position[2] = index / (_numVoxels * _numVoxels) - _numVoxels / 2;
 		position[] *= _voxelSide;
 		return point3!Tmat(position).add(_center);
 	}

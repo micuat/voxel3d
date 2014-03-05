@@ -58,9 +58,9 @@ void testApp::update(){
 			float p = *(v.pdf + i);
 			if( p > 0.5 ) {
 				ofVec3f pos;
-				pos.x = i % n;
-				pos.y = (i / n) % n;
-				pos.z = i / (n * n);
+				pos.x = i % n - n / 2;
+				pos.y = (i / n) % n - n / 2;
+				pos.z = i / (n * n) - n / 2;
 				voxel.addVertex((pos * v.side / v.numVoxels) + center);
 				voxel.addColor(p * 255);
 			}
@@ -77,7 +77,9 @@ void testApp::draw(){
 	
 	if( displayChannel == 0 ) {
 		cam.begin();
-		//mesh.drawFaces();
+		ofSetColor(50, 10, 240);
+		mesh.drawFaces();
+		ofSetColor(255, 10, 10);
 		voxel.drawVertices();
 		cam.end();
 	} else {
