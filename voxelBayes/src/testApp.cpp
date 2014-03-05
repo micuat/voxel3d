@@ -61,13 +61,13 @@ void testApp::update(){
 		int n = v.numVoxels;
 		for( int i = 0; i < n*n*n; i++ ) {
 			float p = *(v.pdf + i);
-			if( p > 0.0 ) {
+			if( p > 0.5 ) {
 				ofVec3f pos;
 				pos.x = i % n - n / 2;
 				pos.y = (i / n) % n - n / 2;
 				pos.z = i / (n * n) - n / 2;
 				voxel.addVertex((pos * v.side / v.numVoxels) + center);
-				voxel.addColor(ofFloatColor(p, 0.1, 0.9));
+				voxel.addColor(ofFloatColor(p));
 			}
 		}
 		

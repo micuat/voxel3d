@@ -146,7 +146,7 @@ public:
 				auto pixel = model.projection.mul(toHomogeneous(indexToPosition(i)));
 				if( pixel[2, 0] < 0 ) {
 					//"negative projection depth".writeln;
-					continue;
+					//continue;
 				}
 				int x = cast(int)(pixel[0, 0] / pixel[2, 0]);
 				int y = cast(int)(pixel[1, 0] / pixel[2, 0]);
