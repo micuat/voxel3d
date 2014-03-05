@@ -59,7 +59,7 @@ void testApp::update(){
 		francoParamf fparam;
 		fparam.pD = 0.9;
 		fparam.pFA = 0.1;
-		fparam.k = 3;
+		fparam.k = 5;
 		francoVoxelf v;
 		v = francoReconstructfub(p, NUM_PERS, fparam);
 		
@@ -73,7 +73,7 @@ void testApp::update(){
 				pos.y = (i / n) % n - n / 2;
 				pos.z = i / (n * n) - n / 2;
 				voxel.addVertex((pos * v.side / v.numVoxels) + center);
-				voxel.addColor(ofFloatColor(p * 2 - 1));
+				voxel.addColor(ofFloatColor(ofMap(p, 0.5, 1.0, 0.0, 1.0)));
 			}
 		}
 		
