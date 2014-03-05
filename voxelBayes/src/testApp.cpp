@@ -10,7 +10,7 @@ void testApp::setup(){
 	Extr.resize(NUM_PERS);
 	
 	ofMatrix4x4 R, T;
-	float f = 1000;
+	float f = 1500;
 	float cx = w/2 + 0.5;
 	float cy = h/2 + 0.5;
 	
@@ -56,13 +56,13 @@ void testApp::update(){
 		int n = v.numVoxels;
 		for( int i = 0; i < n*n*n; i++ ) {
 			float p = *(v.pdf + i);
-			if( p > 0.5 ) {
+			if( p > 0.0 ) {
 				ofVec3f pos;
 				pos.x = i % n - n / 2;
 				pos.y = (i / n) % n - n / 2;
 				pos.z = i / (n * n) - n / 2;
 				voxel.addVertex((pos * v.side / v.numVoxels) + center);
-				voxel.addColor(p * 255);
+				voxel.addColor(ofFloatColor(p));
 			}
 		}
 		
@@ -72,19 +72,52 @@ void testApp::update(){
 
 //--------------------------------------------------------------
 void testApp::draw(){
+	ofEnableDepthTest();
 	ofBackground(0);
 	ofSetColor(255);
 	
+	float f = 1500;
+	
+	float fx = f;
+	float fy = f;
+	float cx = w/2 + 0.5;
+	float cy = h/2 + 0.5;
+	
+	float nearDist = 0.1, farDist = 10000.0;
+	
 	if( displayChannel == 0 ) {
 		cam.begin();
+		ofPushStyle();
 		ofSetColor(50, 10, 240);
-		mesh.drawFaces();
-		ofSetColor(255, 10, 10);
+		mesh.drawWireframe();
+		ofPopStyle();
+		
 		voxel.drawVertices();
+		
+		for( int i = 0; i < Extr.size(); i++ ) {
+			ofPushMatrix();
+			glMultMatrixf(ofMatrix4x4::getTransposedOf(Extr.at(i)).getPtr());
+			ofDrawAxis(100);
+			
+			ofMatrix4x4 frustumMatrix;
+			float nearDist = 50.0, farDist = 200.0;
+			frustumMatrix.makeFrustumMatrix(nearDist * (-cx) / fx, nearDist * (w - cx) / fx,
+											nearDist * (cy - h) / fy, nearDist * (cy) / fy,
+											nearDist, farDist);
+			frustumMatrix = frustumMatrix.getInverse();
+			ofMultMatrix(frustumMatrix);
+			ofLine(-1, -1, -1, -1, -1, 1);
+			ofLine(1, -1, -1, 1, -1, 1);
+			ofLine(-1, 1, -1, -1, 1, 1);
+			ofLine(1, 1, -1, 1, 1, 1);
+			ofNoFill();
+			ofRect(-1, -1, 1, 2, 2);
+			ofRect(-1, -1, -1, 2, 2);
+			ofPopMatrix();
+		}
+		
 		cam.end();
 	} else {
-		
-		float f = 1000;
 		
 		ofSetupScreenPerspective(w, h);
 		
@@ -93,12 +126,6 @@ void testApp::draw(){
 		glViewport(0, 0, w, h);
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-		float fx = f;
-		float fy = f;
-		float cx = w/2 + 0.5;
-		float cy = h/2 + 0.5;
-		
-		float nearDist = 0.1, farDist = 10000.0;
 		
 		glFrustum(
 				  nearDist * (-cx) / fx, nearDist * (w - cx) / fx,

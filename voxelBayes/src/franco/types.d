@@ -135,17 +135,28 @@ public:
 		foreach(int i, ref p; pdf) {
 			Tmat pFill = 1;
 			Tmat pNofill = 1;
+			bool isUpdated = false;
 			foreach(ref model; _models) {
 				auto pixel = model.projection.mul(toHomogeneous(indexToPosition(i)));
+				if( pixel[2, 0] < 0 ) {
+					//"negative projection depth".writeln;
+					continue;
+				}
 				int x = cast(int)(pixel[0, 0] / pixel[2, 0]);
 				int y = cast(int)(pixel[1, 0] / pixel[2, 0]);
 				if( x >= 0 && y >= 0 && x < model.w && y < model.h ) {
-					if( model.getPixel(x, y) > 128)
-						pFill *= 1.2;
-						pNofill *= 0.8;
+					if( model.getPixel(x, y) > 128) {
+						pFill *= 1.1;
+						pNofill *= 0.9;
+						isUpdated = true;
+					}
 				}
 			}
-			p = pFill / (pFill + pNofill);
+			if( isUpdated == true ) {
+				p = pFill / (pFill + pNofill);
+			} else {
+				p = 0;
+			}
 		}
 	}
 	
