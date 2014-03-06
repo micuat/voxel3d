@@ -13,6 +13,17 @@ extern "C" {
 		int width;
 		int height;
 		uchar *image;
+		uchar *background;
+	};
+	
+	// float-uint
+	struct francoPhotofui {
+		float intrinsics[9];
+		float extrinsics[12];
+		int width;
+		int height;
+		uint *image;
+		uint *background;
 	};
 	
 	// float
@@ -20,6 +31,7 @@ extern "C" {
 		float pD;
 		float pFA;
 		int k;
+		int kbg;
 	};
 	
 	// float
@@ -31,6 +43,7 @@ extern "C" {
 	};
 	
 	struct francoVoxelf francoReconstructfub(struct francoPhotofub *, int, struct francoParamf);
+	struct francoVoxelf francoReconstructfui(struct francoPhotofui *, int, struct francoParamf);
 };
 
 class testApp : public ofBaseApp{
@@ -66,7 +79,7 @@ class testApp : public ofBaseApp{
 	vector<ofMatrix4x4> Intr;
 	vector<ofMatrix4x4> Extr;
 	vector<ofImage> images;
-	francoPhotofub p[NUM_PERS];
+	francoPhotofui p[NUM_PERS];
 	int displayChannel;
 	bool doProcess;
 	bool drawForeground, drawBackground;

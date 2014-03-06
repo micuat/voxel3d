@@ -13,7 +13,7 @@ struct francoPhoto(Tmat, Timg) {
 	int width;
 	int height;
 	Timg *image;
-//	Timg *background;
+	Timg *background;
 }
 
 extern (C) alias francoPhotofub = francoPhoto!(float, ubyte);
@@ -23,7 +23,7 @@ struct francoParam(T) {
 	T pD;
 	T pFA;
 	int k;
-//	int kbg;
+	int kbg;
 }
 
 extern (C) alias francoParamf = francoParam!float;
@@ -66,20 +66,35 @@ public:
 		int h = fp.height;
 		_image = matrix!Timg(w, h);
 		_image.array[0..h*w] = fp.image[0..h*w];
+		_background = matrix!Timg(w, h);
+		_background.array[0..h*w] = fp.background[0..h*w];
+	}
+	
+	Tmat isBack(T)(MatrixView!T pixel) {
+		ubyte[Timg.sizeof] rgba;
+		Timg rawrgba = getPixel(pixel);
+		
+		foreach(ref r; rgba) {
+			r = rawrgba & 255;
+			rawrgba = rawrgba >> 8;
+		}
+		
+		static if(Timg.sizeof > 2) {
+			return 1 - cast(Tmat)rgba[2]/255;
+		}
+		else return 1-rgba[0]/255;
 	}
 	
 	// image is transposed
-	Timg getPixel(MatrixView!Tmat pixel) {
-		return _image[cast(uint)pixel[0, 0], cast(uint)pixel[1, 0]];
+	Timg getPixel(T)(MatrixView!T pixel) {
+		return getPixel(pixel[0, 0], pixel[1, 0]);
 	}
 	
-	Timg getPixel(MatrixView!int pixel) {
-		return _image[cast(uint)pixel[0, 0], cast(uint)pixel[1, 0]];
+	Timg getPixel(T)(T x, T y) {
+		return _image[cast(typeof(_image.rows))x, cast(typeof(_image.cols))y];
 	}
 	
-	Timg getPixel(int x, int y) {
-		return _image[x, y];
-	}
+	
 	
 	@property {
 		uint w() const {
@@ -97,9 +112,6 @@ public:
 		MatrixView!Tmat projection() const {
 			return _intrinsics.mul(_extrinsicsInv);
 		}
-		MatrixView!Timg image() const {
-			return _image.copy;
-		}
 	}
 	
 private:
@@ -107,6 +119,7 @@ private:
 	MatrixView!Tmat _extrinsics;
 	MatrixView!Tmat _extrinsicsInv;
 	MatrixView!Timg _image; // transposed
+	MatrixView!Timg _background; // transposed
 }
 
 class voxelLike(Tmat, Timg) {
@@ -178,8 +191,8 @@ public:
 					// pFill *= p1
 					// pNofill *= p0
 					Tmat p1, p0;
-					p1 = _pD * (1.0 / 255) + (1 - _pD) * ((255 - model.getPixel(neighbor)) / 255);
-					p0 = ((_pD + _pFA) * (1.0 / 255) + (2 - _pD - _pFA) * ((255 - model.getPixel(neighbor)) / 255)) * 0.5;
+					p1 = _pD * (1.0 / 255) + (1 - _pD) * model.isBack(neighbor);
+					p0 = ((_pD + _pFA) * (1.0 / 255) + (2 - _pD - _pFA) * model.isBack(neighbor)) * 0.5;
 					pFill *= p1 / p0;
 				}
 			}

@@ -81,15 +81,16 @@ void testApp::update(){
 					p[i].extrinsics[row + 3*col] = Extr.at(i)(row, col);
 			p[i].width = w;
 			p[i].height = h;
-			p[i].image = images.at(i).getPixels();
+			p[i].image = (uint *)images.at(i).getPixels();
+			p[i].background = (uint *)images.at(i).getPixels();
 		}
 		
 		francoParamf fparam;
 		fparam.pD = 0.9;
 		fparam.pFA = 0.1;
-		fparam.k = 5;
+		fparam.k = 1;
 		francoVoxelf v;
-		v = francoReconstructfub(p, NUM_PERS, fparam);
+		v = francoReconstructfui(p, NUM_PERS, fparam);
 		
 		ofVec3f center(v.center[0], v.center[1], v.center[2]);
 		int n = v.numVoxels;
@@ -112,7 +113,7 @@ void testApp::update(){
 void testApp::drawMeshes(bool wire, bool fore, bool back) {
 	if( fore ) {
 		ofPushStyle();
-		ofSetColor(50, 10, 240);
+		ofSetColor(50, 10, 255);
 		
 		ofPushMatrix();
 		ofTranslate(200, 0, 0);
@@ -212,9 +213,9 @@ void testApp::draw(){
 		drawMeshes(false, true, false);
 		
 		ofImage image;
-		image.allocate(w, h, OF_IMAGE_GRAYSCALE);
+		image.allocate(w, h, OF_IMAGE_COLOR_ALPHA);
 		image.grabScreen(0, 0, w, h);
-		image.setImageType(OF_IMAGE_GRAYSCALE);
+		image.setImageType(OF_IMAGE_COLOR_ALPHA);
 		image.saveImage(ofToString(displayChannel) + ".png");
 		images.push_back(image);
 		displayChannel++;
