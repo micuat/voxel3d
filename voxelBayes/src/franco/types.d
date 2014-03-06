@@ -6,6 +6,7 @@ import std.stdio;
 
 import scid.matrix;
 import franco.matrix;
+import franco.utils;
 
 struct francoPhoto(Tmat, Timg) {
 	Tmat intrinsics[9];
@@ -70,31 +71,47 @@ public:
 		_background.array[0..h*w] = fp.background[0..h*w];
 	}
 	
-	Tmat isBack(T)(MatrixView!T pixel) {
+	Tmat isBack(T)(MatrixView!T pos) {
+		auto fore = toArray(foreground(pos));
+		auto back = toArray(foreground(pos));
+		
+		auto ns = neighbors(pos, w, h, 3);
+		
+		static if(Timg.sizeof > 2) {
+			return 1 - cast(Tmat)fore[2]/255;
+		}
+		else return 1-fore[0]/255;
+	}
+	
+	ubyte[Timg.sizeof] toArray(Timg pixel) {
 		ubyte[Timg.sizeof] rgba;
-		Timg rawrgba = getPixel(pixel);
+		Timg rawrgba = pixel;
 		
 		foreach(ref r; rgba) {
 			r = rawrgba & 255;
 			rawrgba = rawrgba >> 8;
 		}
 		
-		static if(Timg.sizeof > 2) {
-			return 1 - cast(Tmat)rgba[2]/255;
-		}
-		else return 1-rgba[0]/255;
+		return rgba;
 	}
 	
 	// image is transposed
-	Timg getPixel(T)(MatrixView!T pixel) {
-		return getPixel(pixel[0, 0], pixel[1, 0]);
+	Timg foreground(T)(MatrixView!T pos) {
+		return foreground(pos[0, 0], pos[1, 0]);
 	}
 	
-	Timg getPixel(T)(T x, T y) {
+	Timg foreground(T)(T x, T y) {
 		return _image[cast(typeof(_image.rows))x, cast(typeof(_image.cols))y];
 	}
 	
+	// image is transposed
+	Timg background(T)(MatrixView!T pos) {
+		return background(pos[0, 0], pos[1, 0]);
+	}
 	
+	Timg background(T)(T x, T y) {
+		return _background[cast(typeof(_background.rows))x, cast(typeof(_background.cols))y];
+	}
 	
 	@property {
 		uint w() const {
@@ -124,9 +141,6 @@ private:
 
 class voxelLike(Tmat, Timg) {
 public:
-	Tmat _pD, _pFA;
-	int _k;
-	
 	this() {
 	}
 	
@@ -179,7 +193,7 @@ public:
 					continue;
 				}
 				
-				auto ns = neighbors(x, y, model.w, model.h);
+				auto ns = neighbors(x, y, model.w, model.h, _k);
 				
 				if(ns.length > 0) {
 					updateCount++;
@@ -203,21 +217,6 @@ public:
 				p = 0;
 			}
 		}
-	}
-	
-	MatrixView!int[] neighbors(int cx, int cy, int w, int h) {
-		MatrixView!int[] ns;
-		int halfk = (_k - 1) / 2;
-		
-		foreach(int y; cy-halfk..cy+halfk+1) {
-			foreach(int x; cx-halfk..cx+halfk+1) {
-				if( x >= 0 && y >= 0 && x < w && y < h ) {
-					ns ~= point2!int([x, y]);
-				}
-			}
-		}
-		
-		return ns;
 	}
 	
 	@property {
@@ -284,6 +283,9 @@ public:
 			return fv;
 		}
 	}
+	
+	Tmat _pD, _pFA;
+	int _k;
 	
 private:
 	photoModel!(Tmat, Timg)[] _models;

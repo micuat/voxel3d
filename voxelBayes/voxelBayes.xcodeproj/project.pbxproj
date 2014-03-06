@@ -93,6 +93,7 @@
 		5C05F4AA18C29ABF0088D58A /* matrix.d */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.d; name = matrix.d; path = franco/matrix.d; sourceTree = "<group>"; };
 		5C05F4AB18C29ABF0088D58A /* wrapper.d */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.d; name = wrapper.d; path = franco/wrapper.d; sourceTree = "<group>"; };
 		5CCE41D118C2F2FB00DA0744 /* types.d */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.d; name = types.d; path = franco/types.d; sourceTree = "<group>"; };
+		5CF51E9718C8C6CB009D8874 /* utils.d */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.d; name = utils.d; path = franco/utils.d; sourceTree = "<group>"; };
 		5D966EA1AA66E2D55D047733 /* blobtrack.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = blobtrack.hpp; path = ../../../addons/ofxOpenCv/libs/opencv/include/opencv2/legacy/blobtrack.hpp; sourceTree = SOURCE_ROOT; };
 		60179A75A6C5F9A54DA3A64C /* streams.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = streams.hpp; path = ../../../addons/ofxOpenCv/libs/opencv/include/opencv2/legacy/streams.hpp; sourceTree = SOURCE_ROOT; };
 		603F2267D449084A4187A049 /* ofxCvBlob.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = ofxCvBlob.h; path = ../../../addons/ofxOpenCv/src/ofxCvBlob.h; sourceTree = SOURCE_ROOT; };
@@ -550,6 +551,7 @@
 				E4B69E1F0A3A1BDC003C02F2 /* testApp.h */,
 				5C05F4AA18C29ABF0088D58A /* matrix.d */,
 				5CCE41D118C2F2FB00DA0744 /* types.d */,
+				5CF51E9718C8C6CB009D8874 /* utils.d */,
 				5C05F4AB18C29ABF0088D58A /* wrapper.d */,
 			);
 			path = src;
