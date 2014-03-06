@@ -64,7 +64,8 @@ class testApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
 		
 	inline float rRand(float r) {return ofRandom(2*r)-r;}
-	void drawMeshes(bool, bool, bool);
+	void drawFore(bool);
+	void drawBack();
 	void drawCameras();
 	
 	ofVboMesh mesh;
@@ -73,12 +74,12 @@ class testApp : public ofBaseApp{
 	ofImage backImage;
 	ofEasyCam cam;
 	
-	static const int h = 800;
-	static const int w = 1280;
+	static const int h = 768;
+	static const int w = 1024;
 	
 	vector<ofMatrix4x4> Intr;
 	vector<ofMatrix4x4> Extr;
-	vector<ofImage> images;
+	vector<ofImage> images, backs;
 	francoPhotofui p[NUM_PERS];
 	int displayChannel;
 	bool doProcess;

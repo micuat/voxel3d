@@ -3,6 +3,7 @@
 //--------------------------------------------------------------
 void testApp::setup(){
 	ofSetLogLevel(OF_LOG_VERBOSE);
+	ofSetVerticalSync(true);
 	
 	mesh.load("lofi-bunny.ply");
 	backImage.loadImage("background.jpg");
@@ -82,7 +83,7 @@ void testApp::update(){
 			p[i].width = w;
 			p[i].height = h;
 			p[i].image = (uint *)images.at(i).getPixels();
-			p[i].background = (uint *)images.at(i).getPixels();
+			p[i].background = (uint *)backs.at(i).getPixels();
 		}
 		
 		francoParamf fparam;
@@ -110,38 +111,34 @@ void testApp::update(){
 	}		
 }
 
-void testApp::drawMeshes(bool wire, bool fore, bool back) {
-	if( fore ) {
-		ofPushStyle();
-		ofSetColor(50, 10, 255);
-		
-		ofPushMatrix();
-		ofTranslate(200, 0, 0);
-		if( wire ) mesh.drawWireframe();
-		else mesh.drawFaces();
-		ofPopMatrix();
-		
-		ofPushMatrix();
-		ofTranslate(-200, 0, 0);
-		if( wire ) mesh.drawWireframe();
-		else mesh.drawFaces();
-		ofPopMatrix();
-		
-		ofPopStyle();
-	}
+void testApp::drawFore(bool wire) {
+	ofPushStyle();
+	ofSetColor(50, 10, 255);
 	
-	voxel.drawVertices();
+	ofPushMatrix();
+	ofTranslate(200, 0, 0);
+	if( wire ) mesh.drawWireframe();
+	else mesh.drawFaces();
+	ofPopMatrix();
 	
-	if( back ) {
-		ofPushMatrix();
-		backImage.bind();
-		for( int i = 0; i < 4; i++ ) {
-			background.drawFaces();
-			ofRotate(90, 0, 1, 0);
-		}
-		backImage.unbind();
-		ofPopMatrix();
+	ofPushMatrix();
+	ofTranslate(-200, 0, 0);
+	if( wire ) mesh.drawWireframe();
+	else mesh.drawFaces();
+	ofPopMatrix();
+	
+	ofPopStyle();
+}
+	
+void testApp::drawBack() {
+	ofPushMatrix();
+	backImage.bind();
+	for( int i = 0; i < 4; i++ ) {
+		background.drawFaces();
+		ofRotate(90, 0, 1, 0);
 	}
+	backImage.unbind();
+	ofPopMatrix();
 }
 
 void testApp::drawCameras() {
@@ -178,7 +175,13 @@ void testApp::draw(){
 	if( displayChannel == 0 ) {
 		cam.begin();
 		
-		drawMeshes(true, drawForeground, drawBackground);
+		if( drawForeground ) {
+			drawFore(true);
+		}
+		voxel.drawVertices();
+		if( drawBackground ) {
+			drawBack();
+		}
 		
 		drawCameras();
 		
@@ -207,16 +210,27 @@ void testApp::draw(){
 		
 		glMatrixMode(GL_PROJECTION);
 		glMultMatrixf(ofMatrix4x4::getTransposedOf(Extr.at(displayChannel-1)).getInverse().getPtr());
+		
+		// add noise
 		ofTranslate(rRand(20), rRand(20), rRand(20));
 		ofRotate(rRand(10), ofRandom(1), ofRandom(1), ofRandom(1));
 		
-		drawMeshes(false, true, false);
-		
 		ofImage image;
+		
+		drawBack();
+		
 		image.allocate(w, h, OF_IMAGE_COLOR_ALPHA);
 		image.grabScreen(0, 0, w, h);
 		image.setImageType(OF_IMAGE_COLOR_ALPHA);
-		image.saveImage(ofToString(displayChannel) + ".png");
+		//image.saveImage(ofToString(displayChannel) + "back.png");
+		backs.push_back(image);
+		
+		drawFore(false);
+		
+		image.allocate(w, h, OF_IMAGE_COLOR_ALPHA);
+		image.grabScreen(0, 0, w, h);
+		image.setImageType(OF_IMAGE_COLOR_ALPHA);
+		//image.saveImage(ofToString(displayChannel) + ".png");
 		images.push_back(image);
 		displayChannel++;
 		if( displayChannel > NUM_PERS ) {
@@ -230,6 +244,7 @@ void testApp::draw(){
 void testApp::keyPressed(int key){
 	if( key == ' ' ) {
 		images.clear();
+		backs.clear();
 		displayChannel = (displayChannel + 1);
 	}
 	
