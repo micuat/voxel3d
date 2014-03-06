@@ -7,37 +7,47 @@ import std.stdio;
 import scid.matrix;
 import franco.matrix;
 
-extern (C) struct francoPhotofub {
-	float intrinsics[9];
-	float extrinsics[12];
+struct francoPhoto(Tmat, Timg) {
+	Tmat intrinsics[9];
+	Tmat extrinsics[12];
 	int width;
 	int height;
-	ubyte *image;
+	Timg *image;
+//	Timg *background;
 }
 
-extern (C) struct francoParamf {
-	float pD;
-	float pFA;
+extern (C) alias francoPhotofub = francoPhoto!(float, ubyte);
+extern (C) alias francoPhotofui = francoPhoto!(float, int);
+
+struct francoParam(T) {
+	T pD;
+	T pFA;
 	int k;
+//	int kbg;
 }
 
-extern (C) struct francoVoxelf {
-	float side;
+extern (C) alias francoParamf = francoParam!float;
+
+struct francoVoxel(T) {
+	T side;
 	int numVoxels;
-	float center[3];
-	float *pdf;
+	T center[3];
+	T *pdf;
 }
+
+extern (C) alias francoVoxelf = francoVoxel!float;
+
 
 class photoModel(Tmat, Timg) {
 public:
 	this() {
 	}
 	
-	this(in francoPhotofub fp) {
+	this(in francoPhoto!(Tmat, Timg) fp) {
 		setFromFrancoPhoto(fp);
 	}
 	
-	void setFromFrancoPhoto(in ref francoPhotofub fp) {
+	void setFromFrancoPhoto(in ref francoPhoto!(Tmat, Timg) fp) {
 		_intrinsics = matrix!Tmat(3, 3);
 		_intrinsics.array = fp.intrinsics.dup;
 		_extrinsics = matrix!Tmat(3, 4);
@@ -198,7 +208,7 @@ public:
 	}
 	
 	@property {
-		void parameters(francoParamf fparam) {
+		void parameters(francoParam!Tmat fparam) {
 			_pD = fparam.pD;
 			_pFA = fparam.pFA;
 			_k = fparam.k;
@@ -250,8 +260,8 @@ public:
 			setDimensions(length * 0.5, point3!Tmat(center), 50);
 		}
 		
-		francoVoxelf fVoxel() {
-			francoVoxelf fv;
+		francoVoxel!Tmat fVoxel() {
+			francoVoxel!Tmat fv;
 			fv.side = _side;
 			fv.numVoxels = _numVoxels;
 			fv.center[0] = _center[0, 0];
