@@ -73,14 +73,17 @@ public:
 	
 	Tmat isBack(T)(MatrixView!T pos) {
 		auto fore = toArray(foreground(pos));
-		auto back = toArray(foreground(pos));
 		
 		auto ns = neighbors(pos, w, h, 3);
+		ubyte[Timg.sizeof][] backArray;
 		
-		static if(Timg.sizeof > 2) {
-			return 1 - cast(Tmat)fore[2]/255;
+		foreach(ref neighbor; ns) {
+			backArray ~= toArray(background(neighbor));
 		}
-		else return 1-fore[0]/255;
+		
+		auto m = mean!(ubyte, Timg.sizeof, Tmat)(backArray);
+		auto cov = covariance!(ubyte, Timg.sizeof, Tmat)(backArray, m);
+		return mvnpdf!(ubyte, Timg.sizeof, Tmat)(fore, m, cov);
 	}
 	
 	ubyte[Timg.sizeof] toArray(Timg pixel) {
@@ -205,8 +208,9 @@ public:
 					// pFill *= p1
 					// pNofill *= p0
 					Tmat p1, p0;
-					p1 = _pD * (1.0 / 255) + (1 - _pD) * model.isBack(neighbor);
-					p0 = ((_pD + _pFA) * (1.0 / 255) + (2 - _pD - _pFA) * model.isBack(neighbor)) * 0.5;
+					auto isb = model.isBack(neighbor);
+					p1 = _pD * (1.0 / 255) + (1 - _pD) * isb;
+					p0 = ((_pD + _pFA) * (1.0 / 255) + (2 - _pD - _pFA) * isb) * 0.5;
 					pFill *= p1 / p0;
 				}
 			}

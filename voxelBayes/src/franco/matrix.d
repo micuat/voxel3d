@@ -94,9 +94,7 @@ MatrixView!(T) mul(T, T2)
 if( isBasicType!(T2) )
 {
 	T[] a = m.array.dup;
-	foreach( typeof(a.length) i; 0..a.length ) {
-		a[i] = a[i] * scalar;
-	}
+	a[] *= scalar;
 	return MatrixView!(T)(a, m.rows, m.cols);
 }
 
@@ -105,9 +103,7 @@ MatrixView!(T) div(T, T2)
 if( isBasicType!(T2) )
 {
 	T[] a = m.array.dup;
-	foreach( typeof(a.length) i; 0..a.length ) {
-		a[i] = a[i] / scalar;
-	}
+	a[] /= scalar;
 	return MatrixView!(T)(a, m.rows, m.cols);
 }
 

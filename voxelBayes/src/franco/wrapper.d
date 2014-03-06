@@ -37,7 +37,7 @@ francoVoxel!Tmat francoReconstruct(Tmat, Timg)(francoPhoto!(Tmat, Timg) *fp, int
 	return fVoxel;
 }
 
-//extern (C) alias francoReconstructfub = francoReconstruct!(float, ubyte);
+extern (C) alias francoReconstructfub = francoReconstruct!(float, ubyte);
 
 extern(C) int ofmain();
 void main() {
