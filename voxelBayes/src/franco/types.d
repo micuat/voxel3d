@@ -3,6 +3,7 @@
 module franco.types;
 
 import std.stdio;
+import std.math;
 
 import scid.matrix;
 import franco.matrix;
@@ -46,6 +47,7 @@ public:
 	
 	this(in francoPhoto!(Tmat, Timg) fp) {
 		setFromFrancoPhoto(fp);
+		_mvnmap = matrix!Tmat(w, h, Tmat.nan);
 	}
 	
 	void setFromFrancoPhoto(in ref francoPhoto!(Tmat, Timg) fp) {
@@ -71,31 +73,36 @@ public:
 		_background.array[0..h*w] = fp.background[0..h*w];
 	}
 	
-	Tmat isBack(T)(MatrixView!T pos) {
-		auto fore = toArray(foreground(pos));
+	Tmat isBack(T, uint Tsize)(MatrixView!T pos) {
+		auto mvn = _mvnmap[pos[0, 0], pos[1, 0]];
+		if(!isNaN(mvn)) return mvn;
+		
+		auto fore = toArray!Tsize(foreground(pos));
 		
 		auto ns = neighbors(pos, w, h, 7);
-		ubyte[Timg.sizeof][] backArray;
+		ubyte[Tsize][] backArray;
 		
 		foreach(ref neighbor; ns) {
-			backArray ~= toArray(background(neighbor));
+			backArray ~= toArray!Tsize(background(neighbor));
 		}
 		
-		auto m = mean!(ubyte, Timg.sizeof, Tmat)(backArray);
-		auto cov = covariance!(ubyte, Timg.sizeof, Tmat)(backArray, m);
-		return mvnpdf!(ubyte, Timg.sizeof, Tmat)(fore, m, cov);
+		auto m = mean!(ubyte, Tsize, Tmat)(backArray);
+		auto cov = covariance!(ubyte, Tsize, Tmat)(backArray, m);
+		mvn = mvnpdf!(ubyte, Tsize, Tmat)(fore, m, cov);
+		_mvnmap[pos[0, 0], pos[1, 0]] = mvn;
+		return mvn;
 	}
 	
-	ubyte[Timg.sizeof] toArray(Timg pixel) {
-		ubyte[Timg.sizeof] rgba;
-		Timg rawrgba = pixel;
+	ubyte[T] toArray(uint T)(Timg pixel) {
+		ubyte[T] rgb;
+		Timg rawrgb = pixel;
 		
-		foreach(ref r; rgba) {
-			r = rawrgba & 255;
-			rawrgba = rawrgba >> 8;
+		foreach(i; 0..T) {
+			rgb[i] = rawrgb & 255;
+			rawrgb = rawrgb >> 8;
 		}
 		
-		return rgba;
+		return rgb;
 	}
 	
 	// image is transposed
@@ -140,6 +147,7 @@ private:
 	MatrixView!Tmat _extrinsicsInv;
 	MatrixView!Timg _image; // transposed
 	MatrixView!Timg _background; // transposed
+	MatrixView!Tmat _mvnmap; // transposed
 }
 
 class voxelLike(Tmat, Timg) {
@@ -208,7 +216,12 @@ public:
 					// pFill *= p1
 					// pNofill *= p0
 					Tmat p1, p0;
-					auto isb = model.isBack(neighbor);
+					Tmat isb;
+					static if(Timg.sizeof == 1) {
+						isb = model.isBack!(int, 1)(neighbor);
+					} else static if(Timg.sizeof == 4) {
+						isb = model.isBack!(int, 3)(neighbor);
+					}						
 					p1 = _pD * (1.0 / 255) + (1 - _pD) * isb;
 					p0 = ((_pD + _pFA) * (1.0 / 255) + (2 - _pD - _pFA) * isb) * 0.5;
 					pFill *= p1 / p0;

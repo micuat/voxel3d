@@ -53,12 +53,15 @@ MatrixView!Tout covariance(Tin, Tin N, Tout)(Tin[N][] arr, MatrixView!Tout m) {
 	}
 	
 	foreach(ii; 0..N) {
-		foreach(jj; 0..N) {
+		foreach(jj; ii..N) {
 			Tout sum = 0;
 			foreach(i; 0..diff.length) {
 				sum += diff[i][ii] * diff[i][jj];
 			}
 			cov[ii, jj] = sqrt(sum / cast(Tout)diff.length);
+			if(ii != jj) {
+				cov[jj, ii] = cov[ii, jj];
+			}
 		}
 	}
 	
@@ -68,8 +71,12 @@ MatrixView!Tout covariance(Tin, Tin N, Tout)(Tin[N][] arr, MatrixView!Tout m) {
 Tout mvnpdf(Tin, Tin N, Tout)(Tin[N] sample, MatrixView!Tout m, MatrixView!Tout cov) {
 	static if(N == 1) {
 		if(cov[0, 0] == 0) {
-			// TODO: homogeneous background; this is tricky
-			return 0;
+			// homogeneous background; this is tricky
+			if(!approxEqual(sample[0], m[0, 0], 0.1)) {
+				return 0;
+			} else {
+				return 1;
+			}
 		}
 		//auto coeff = pow(2 * PI, -0.5) / cov[0, 0];
 		auto diff = sample[0] - m[0, 0];
@@ -87,8 +94,14 @@ Tout mvnpdf(Tin, Tin N, Tout)(Tin[N] sample, MatrixView!Tout m, MatrixView!Tout 
 			}
 		}
 		if(count == 0) {
-			// TODO: homogeneous background; this is tricky
-			return 0;
+			// homogeneous background; this is tricky
+			foreach(i, s; sample) {
+				if(!approxEqual(s, m[i, 0], 0.1)) {
+					return 0;
+				} 
+			}
+				
+			return 1;
 		}
 		
 		//Tout coeff = pow(2 * PI, -0.5*count) /= sqrt(pdet);

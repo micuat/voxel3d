@@ -84,7 +84,7 @@ class testApp : public ofBaseApp{
 	int displayChannel;
 	bool doProcess;
 	bool saveImages;
-	bool drawForeground, drawBackground;
+	bool drawForeground, drawBackground, drawVoxel;
 	
 	float f;
 	

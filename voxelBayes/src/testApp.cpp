@@ -8,6 +8,14 @@ void testApp::setup(){
 	mesh.load("lofi-bunny.ply");
 	backImage.loadImage("background.jpg");
 	
+	mesh.clearColors();
+	for( int i = 0; i < mesh.getNumVertices(); i++ ) {
+		if( i % 2 == 0 )
+			mesh.addColor(ofColor::skyBlue);
+		else
+			mesh.addColor(ofColor::lightGreen);
+	}
+	
 	Intr.resize(NUM_PERS);
 	Extr.resize(NUM_PERS);
 	
@@ -71,6 +79,7 @@ void testApp::setup(){
 	doProcess = false;
 	drawForeground = true;
 	drawBackground = true;
+	drawVoxel = true;
 	saveImages = false;
 }
 
@@ -91,9 +100,9 @@ void testApp::update(){
 		}
 		
 		francoParamf fparam;
-		fparam.pD = 0.8;
-		fparam.pFA = 0.2;
-		fparam.k = 3;
+		fparam.pD = 0.9;
+		fparam.pFA = 0.1;
+		fparam.k = 1;
 		francoVoxelf v;
 		v = francoReconstructfui(p, NUM_PERS, fparam);
 		
@@ -117,20 +126,18 @@ void testApp::update(){
 
 void testApp::drawFore(bool wire) {
 	ofPushStyle();
-	ofSetColor(255, 10, 50);
-	//ofSetColor(50, 10, 255);
 	
 	ofPushMatrix();
-	ofTranslate(200, 0, 0);
+	//ofTranslate(200, 0, 0);
 	if( wire ) mesh.drawWireframe();
 	else mesh.drawFaces();
 	ofPopMatrix();
 	
-	ofPushMatrix();
-	ofTranslate(-200, 0, 0);
-	if( wire ) mesh.drawWireframe();
-	else mesh.drawFaces();
-	ofPopMatrix();
+//	ofPushMatrix();
+//	ofTranslate(-200, 0, 0);
+//	if( wire ) mesh.drawWireframe();
+//	else mesh.drawFaces();
+//	ofPopMatrix();
 	
 	ofPopStyle();
 }
@@ -189,7 +196,9 @@ void testApp::draw(){
 		if( drawForeground ) {
 			drawFore(true);
 		}
-		voxel.drawVertices();
+		if( drawVoxel ) {
+			voxel.drawVertices();
+		}
 		if( drawBackground ) {
 			drawBack();
 		}
@@ -222,19 +231,21 @@ void testApp::draw(){
 		glMatrixMode(GL_PROJECTION);
 		glMultMatrixf(ofMatrix4x4::getTransposedOf(Extr.at(displayChannel-1)).getInverse().getPtr());
 		
-		if( !saveImages ) {
+		if( !saveImages && drawVoxel ) {
 			voxel.drawVertices();
 		}
 		
-		if( saveImages ) {
+		//if( saveImages ) {
 			// add noise
-			ofTranslate(rRand(10), rRand(10), rRand(10));
-			ofRotate(rRand(2), ofRandom(1), ofRandom(1), ofRandom(1));
-		}
+			ofTranslate(rRand(5), rRand(5), rRand(5));
+			ofRotate(rRand(1), ofRandom(1), ofRandom(1), ofRandom(1));
+		//}
 		
 		ofImage image;
 		
-		drawBack();
+		if( saveImages || drawBackground ) {
+			drawBack();
+		}
 		
 		if( saveImages ) {
 			image.allocate(w, h, OF_IMAGE_COLOR_ALPHA);
@@ -244,7 +255,9 @@ void testApp::draw(){
 			backs.push_back(image);
 		}
 		
-		drawFore(false);
+		if( saveImages || drawForeground ) {
+			drawFore(false);
+		}
 		
 		if( saveImages ) {
 			image.allocate(w, h, OF_IMAGE_COLOR_ALPHA);
@@ -277,6 +290,9 @@ void testApp::keyPressed(int key){
 	}
 	if( key == 'f' ) {
 		drawBackground = !drawBackground;
+	}
+	if( key == 's' ) {
+		drawVoxel = !drawVoxel;
 	}
 	if( key == OF_KEY_RIGHT ) {
 		displayChannel = (displayChannel + 1);
