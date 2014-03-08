@@ -186,7 +186,7 @@ void testApp::drawCameras() {
 //--------------------------------------------------------------
 void testApp::draw(){
 	ofEnableDepthTest();
-	glPointSize(2);
+	glPointSize(3);
 	ofBackground(0);
 	ofSetColor(255);
 	
@@ -229,17 +229,17 @@ void testApp::draw(){
 				  0, 1, 0);
 		
 		glMatrixMode(GL_PROJECTION);
-		glMultMatrixf(ofMatrix4x4::getTransposedOf(Extr.at(displayChannel-1)).getInverse().getPtr());
+		// add noise
+		ofMatrix4x4 R, T;
+		R.makeIdentityMatrix();
+		R.rotate(rRand(1), ofRandom(1), ofRandom(1), ofRandom(1));
+		T.makeIdentityMatrix();
+		T.translate(rRand(5), rRand(5), rRand(5));
+		glMultMatrixf((ofMatrix4x4::getTransposedOf(Extr.at(displayChannel-1)) * T * R).getInverse().getPtr());
 		
 		if( !saveImages && drawVoxel ) {
 			voxel.drawVertices();
 		}
-		
-		//if( saveImages ) {
-			// add noise
-			ofTranslate(rRand(5), rRand(5), rRand(5));
-			ofRotate(rRand(1), ofRandom(1), ofRandom(1), ofRandom(1));
-		//}
 		
 		ofImage image;
 		
