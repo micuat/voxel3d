@@ -3,12 +3,23 @@
 module franco.matrix;
 
 import std.traits;
-import scid.matrix;
+
+import scid.bindings.lapack.dlapack;
+import scid.core.fortran;
+import scid.core.memory;
+import scid.core.meta;
+import scid.core.testing;
+import scid.core.traits;
 import scid.linalg;
+import scid.matrix;
+import scid.util;
+
+pragma(lib, "blas");
+pragma(lib, "lapack");
 
 version(unittest) {
-    import scid.core.testing; 
-    import std.math;
+	import scid.core.testing; 
+	import std.math;
 }
 
 MatrixView!(T) concatVertical(T)
@@ -20,11 +31,11 @@ MatrixView!(T) concatVertical(T)
 	auto c = m1.cols;
 	auto m = matrix!T(r, c);
 	
-	foreach( typeof(c) j; 0..c ) {
-		foreach( typeof(m1.rows) i; 0..m1.rows ) {
+	foreach(j; 0..c) {
+		foreach(i; 0..m1.rows) {
 			m.array[i + j * r] = m1.array[i + j * m1.rows];
 		}
-		foreach( typeof(m2.rows) i; 0..m2.rows ) {
+		foreach(i; 0..m2.rows) {
 			m.array[i + m1.rows + j * r] = m2.array[i + j * m2.rows];
 		}
 	}
@@ -78,10 +89,10 @@ MatrixView!(T) mul(T)
 	auto c = m2.cols;
 	T[] a;
 	a.length = r * c;
-	foreach( typeof(c) j; 0..c ) {
-		foreach( typeof(r) i; 0..r ) {
+	foreach(j; 0..c ) {
+		foreach(i; 0..r) {
 			a[i + j * r] = 0;
-			foreach( size_t k; 0..m1.cols ) {
+			foreach(k; 0..m1.cols) {
 				a[i + j * r] += m1.array[i + k * r] * m2.array[k + j * r];
 			}
 		}
@@ -111,8 +122,8 @@ MatrixView!(T) t(T)
 (const MatrixView!(T) m)
 {
 	auto mt = matrix!(T)(m.cols, m.rows);
-	foreach( typeof(m.cols) j; 0..m.cols ) {
-		foreach( typeof(m.rows) i; 0..m.rows ) {
+	foreach(j; 0..m.cols) {
+		foreach(i; 0..m.rows) {
 			mt.array[j + i * mt.rows] = m.array[i + j * m.rows];
 		}
 	}
@@ -149,7 +160,7 @@ T dot(T)
 MatrixView!(T) point2(T)(T[] init) pure
 {
 	auto array = new T[2];
-    array[] = init;
+	array[] = init;
 	return typeof(return)(array, 2, 1);
 }
 
@@ -167,7 +178,7 @@ unittest
 MatrixView!(T) point3(T)(T[] init) pure
 {
 	auto array = new T[3];
-    array[] = init;
+	array[] = init;
 	return typeof(return)(array, 3, 1);
 }
 
@@ -180,4 +191,64 @@ unittest
 	check( mul(p1, 4.0)[1, 0] == 12.0 );
 	check( div(p1, 5.0)[1, 0] == 0.6 );
 	check( dot(p1, p2) == 51.0 );
+}
+
+
+/** Calculate the Moore-Penrose pseudoinverse of a matrix.
+ 
+ Currently only defined for general real matrices.
+ */
+T[] pseudoInvert(T, Storage stor)(ref MatrixView!(T, stor) m)
+if (isFortranType!T  &&  !scid.core.traits.isComplex!T
+	&&  stor == Storage.General)
+body
+{
+	mixin (newFrame);
+	// Calculate optimal workspace size.
+	int info;
+	char optu = 'A', optvt = 'A'; // full matrices
+	T optimal;
+	gesvd(
+		  optu, optvt,
+		  toInt(m.rows), toInt(m.cols), null, toInt(m.leading), // Info about M
+		  null,
+		  null, toInt(m.rows),
+		  null, toInt(m.cols),
+		  &optimal, -1, // Do workspace query
+		  info);
+	
+	// Allocate workspace memory.
+	T[] work = newStack!T(cast(int)(optimal));
+	
+	auto u = matrix!T(m.rows, m.rows);
+	T[] s;
+	s.length = m.rows;
+	auto vt = matrix!T(m.cols, m.cols);
+	
+	// Perform singular value decomposition.
+	gesvd(
+		  optu, optvt,
+		  toInt(m.rows), toInt(m.cols), m.array.ptr, toInt(m.leading), // Matrix
+		  s.ptr,
+		  u.array.ptr, toInt(u.leading),
+		  vt.array.ptr, toInt(vt.leading),
+		  work.ptr, toInt(work.length), // Workspace
+		  info);
+	
+	assert (info == 0);
+	
+	auto v = vt.t;
+	foreach(j; 0..m.rows) {
+		foreach(i; 0..m.cols) {
+			if(s[i] > 0.5) {
+				v[j, i] /= s[i];
+			} else {
+				s[i] = 0;
+				v[j, i] = 0;
+			}
+		}
+	}
+	m = v.mul(u.t);
+	
+	return s;
 }

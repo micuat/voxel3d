@@ -89,7 +89,7 @@ void testApp::update(){
 		francoParamf fparam;
 		fparam.pD = 0.9;
 		fparam.pFA = 0.1;
-		fparam.k = 1;
+		fparam.k = 3;
 		francoVoxelf v;
 		v = francoReconstructfui(p, NUM_PERS, fparam);
 		
@@ -113,7 +113,8 @@ void testApp::update(){
 
 void testApp::drawFore(bool wire) {
 	ofPushStyle();
-	ofSetColor(50, 10, 255);
+	ofSetColor(255, 10, 50);
+	//ofSetColor(50, 10, 255);
 	
 	ofPushMatrix();
 	ofTranslate(200, 0, 0);
@@ -133,10 +134,16 @@ void testApp::drawFore(bool wire) {
 void testApp::drawBack() {
 	ofPushMatrix();
 	backImage.bind();
+	
 	for( int i = 0; i < 4; i++ ) {
 		background.drawFaces();
 		ofRotate(90, 0, 1, 0);
 	}
+	ofRotate(90, 1, 0, 0);
+	background.drawFaces();
+	ofRotate(-180, 1, 0, 0);
+	background.drawFaces();
+	
 	backImage.unbind();
 	ofPopMatrix();
 }

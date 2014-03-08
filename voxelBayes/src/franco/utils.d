@@ -2,6 +2,7 @@ module franco.utils;
 
 import std.math;
 import std.stdio;
+
 import scid.matrix;
 import scid.linalg;
 import franco.matrix;
@@ -14,8 +15,8 @@ MatrixView!int[] neighbors(int cx, int cy, int w, int h, int k) {
 	MatrixView!int[] ns;
 	int halfk = (k - 1) / 2;
 	
-	foreach(int y; cy-halfk..cy+halfk+1) {
-		foreach(int x; cx-halfk..cx+halfk+1) {
+	foreach(y; cy-halfk..cy+halfk+1) {
+		foreach(x; cx-halfk..cx+halfk+1) {
 			if( x >= 0 && y >= 0 && x < w && y < h ) {
 				ns ~= point2!int([x, y]);
 			}
@@ -44,17 +45,17 @@ MatrixView!Tout covariance(Tin, Tin N, Tout)(Tin[N][] arr, MatrixView!Tout m) {
 	Tout[N][] diff;
 	diff.length = arr.length;
 	
-	foreach(int j; 0..diff.length) {
-		foreach(int i, ref x; diff[j]) {
+	foreach(j; 0..diff.length) {
+		foreach(i, ref x; diff[j]) {
 			x = cast(Tout)arr[j][i] - m[i, 0];
 			x = x * x;
 		}
 	}
 	
-	foreach(int ii; 0..N) {
-		foreach(int jj; 0..N) {
+	foreach(ii; 0..N) {
+		foreach(jj; 0..N) {
 			Tout sum = 0;
-			foreach(int i; 0..diff.length) {
+			foreach(i; 0..diff.length) {
 				sum += diff[i][ii] * diff[i][jj];
 			}
 			cov[ii, jj] = sqrt(sum / cast(Tout)diff.length);
@@ -65,15 +66,44 @@ MatrixView!Tout covariance(Tin, Tin N, Tout)(Tin[N][] arr, MatrixView!Tout m) {
 }
 
 Tout mvnpdf(Tin, Tin N, Tout)(Tin[N] sample, MatrixView!Tout m, MatrixView!Tout cov) {
-	Tout coeff = pow(2 * PI, -0.5*N);
-	coeff /= sqrt(det(cov));
-	
-	auto x = matrix!Tout(N, 1);
-	foreach(int i; 0..N) {
-		x[i, 0] = sample[i];
+	static if(N == 1) {
+		if(cov[0, 0] == 0) {
+			// TODO: homogeneous background; this is tricky
+			return 0;
+		}
+		//auto coeff = pow(2 * PI, -0.5) / cov[0, 0];
+		auto diff = sample[0] - m[0, 0];
+		auto power = diff * diff / cov[0, 0] / cov[0, 0];
+		return exp(-0.5 * power);
+	} else {
+		auto covInv = cov.copy;
+		auto sv = pseudoInvert(covInv);
+		Tout pdet = 1;
+		int count = 0;
+		foreach(s; sv) {
+			if(s > 0) {
+				pdet *= s;
+				count++;
+			}
+		}
+		if(count == 0) {
+			// TODO: homogeneous background; this is tricky
+			return 0;
+		}
+		
+		//Tout coeff = pow(2 * PI, -0.5*count) /= sqrt(pdet);
+		
+		auto x = matrix!Tout(N, 1);
+		foreach(i; 0..N) {
+			x[i, 0] = sample[i];
+		}
+		auto diff = x.sub(m);
+		auto power = diff.dot(covInv.mul(diff));
+		auto ret = exp(-0.5 * power);
+		
+		if(power < 0) {
+			ret = 1;
+		}
+		return ret;
 	}
-	
-	auto diff = x.sub(m);
-	auto power = diff.t.mul(cov.inv.mul(diff));
-	return coeff * exp(-0.5 * power[0, 0]);
 }

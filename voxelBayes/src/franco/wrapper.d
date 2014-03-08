@@ -20,7 +20,7 @@ francoVoxel!Tmat francoReconstruct(Tmat, Timg)(francoPhoto!(Tmat, Timg) *fp, int
 	
 	photoModel!(Tmat, Timg)[] models;
 	models.length = numPhoto;
-	foreach(int i; 0..numPhoto) {
+	foreach(i; 0..numPhoto) {
 		auto model = new photoModel!(Tmat, Timg)(fp[i]);
 		model.intrinsics.writeln;
 		model.extrinsics.writeln;

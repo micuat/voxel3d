@@ -57,8 +57,8 @@ public:
 		auto extrinsics4x4 = _extrinsics.concatVertical(MatrixView!Tmat([0, 0, 0, 1], 1, 4));
 		auto extrinsicsInv4x4 = extrinsics4x4.inv;
 		_extrinsicsInv = matrix!Tmat(3, 4);
-		foreach(int i; 0..3) {
-			foreach(int j; 0..4) {
+		foreach(i; 0..3) {
+			foreach(j; 0..4) {
 				_extrinsicsInv[i, j] = extrinsicsInv4x4[i, j];
 			}
 		}
@@ -74,7 +74,7 @@ public:
 	Tmat isBack(T)(MatrixView!T pos) {
 		auto fore = toArray(foreground(pos));
 		
-		auto ns = neighbors(pos, w, h, 3);
+		auto ns = neighbors(pos, w, h, 7);
 		ubyte[Timg.sizeof][] backArray;
 		
 		foreach(ref neighbor; ns) {
@@ -183,7 +183,7 @@ public:
 	}
 	
 	void reconstruct() {
-		foreach(int i, ref p; pdf) {
+		foreach(i, ref p; pdf) {
 			Tmat pFill = 1;
 			Tmat pNofill = 1;
 			uint updateCount;
@@ -240,7 +240,7 @@ public:
 			photoModel!(Tmat, Timg)[3] maxModel;
 			
 			foreach(ref model; _models) {
-				foreach(int i; 0..3) {
+				foreach(i; 0..3) {
 					if(model.extrinsics[i, 3] < minxyz[i]) {
 						minxyz[i] = model.extrinsics[i, 3];
 						minModel[i] = model;
@@ -258,7 +258,7 @@ public:
 			
 			Tmat length = 0;
 			int edgeDim;
-			foreach(int i; 0..2) {
+			foreach(i; 0..2) {
 				if(diffxyz[i] > length) {
 					edgeDim = i;
 					length = diffxyz[i];
@@ -266,7 +266,7 @@ public:
 			}
 			// center is on the centroid
 			Tmat[3] center = [0, 0, 0];
-			foreach(int i; 0..3) {
+			foreach(i; 0..3) {
 				foreach(ref model; _models) {
 					center[i] += model.extrinsics[i, 3];
 				}
