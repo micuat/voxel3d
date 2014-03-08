@@ -7,6 +7,7 @@ void testApp::setup(){
 	
 	mesh.load("lofi-bunny.ply");
 	backImage.loadImage("background.jpg");
+	backImage2.loadImage("background2.jpg");
 	
 	mesh.clearColors();
 	for( int i = 0; i < mesh.getNumVertices(); i++ ) {
@@ -75,6 +76,18 @@ void testApp::setup(){
 	background.addTexCoord(ofVec2f(0, backImage.getHeight()));
 	background.addTexCoord(ofVec2f(0, 0));
 	
+	background2.setMode(OF_PRIMITIVE_TRIANGLE_STRIP);
+	background2.addVertex(ofVec3f(-hside,  hside, -hside));
+	background2.addVertex(ofVec3f( hside,  hside, -hside));
+	background2.addVertex(ofVec3f( hside, -hside, -hside));
+	background2.addVertex(ofVec3f(-hside, -hside, -hside));
+	background2.addVertex(ofVec3f(-hside,  hside, -hside));
+	background2.addTexCoord(ofVec2f(0, 0));
+	background2.addTexCoord(ofVec2f(backImage2.getWidth(), 0));
+	background2.addTexCoord(ofVec2f(backImage2.getWidth(), backImage2.getHeight()));
+	background2.addTexCoord(ofVec2f(0, backImage2.getHeight()));
+	background2.addTexCoord(ofVec2f(0, 0));
+	
 	displayChannel = 0;
 	doProcess = false;
 	drawForeground = true;
@@ -128,16 +141,16 @@ void testApp::drawFore(bool wire) {
 	ofPushStyle();
 	
 	ofPushMatrix();
-	//ofTranslate(200, 0, 0);
+	ofTranslate(200, 0, 0);
 	if( wire ) mesh.drawWireframe();
 	else mesh.drawFaces();
 	ofPopMatrix();
 	
-//	ofPushMatrix();
-//	ofTranslate(-200, 0, 0);
-//	if( wire ) mesh.drawWireframe();
-//	else mesh.drawFaces();
-//	ofPopMatrix();
+	ofPushMatrix();
+	ofTranslate(-200, 0, 0);
+	if( wire ) mesh.drawWireframe();
+	else mesh.drawFaces();
+	ofPopMatrix();
 	
 	ofPopStyle();
 }
@@ -150,12 +163,13 @@ void testApp::drawBack() {
 		background.drawFaces();
 		ofRotate(90, 0, 1, 0);
 	}
-	ofRotate(90, 1, 0, 0);
-	background.drawFaces();
-	ofRotate(-180, 1, 0, 0);
-	background.drawFaces();
-	
 	backImage.unbind();
+	
+	backImage2.bind();
+	ofRotate(-90, 1, 0, 0);
+	background2.drawFaces();
+	backImage2.unbind();
+	
 	ofPopMatrix();
 }
 
@@ -229,13 +243,12 @@ void testApp::draw(){
 				  0, 1, 0);
 		
 		glMatrixMode(GL_PROJECTION);
+		glMultMatrixf((ofMatrix4x4::getTransposedOf(Extr.at(displayChannel-1))).getInverse().getPtr());
+		
+		glMatrixMode(GL_MODELVIEW);
 		// add noise
-		ofMatrix4x4 R, T;
-		R.makeIdentityMatrix();
-		R.rotate(rRand(1), ofRandom(1), ofRandom(1), ofRandom(1));
-		T.makeIdentityMatrix();
-		T.translate(rRand(5), rRand(5), rRand(5));
-		glMultMatrixf((ofMatrix4x4::getTransposedOf(Extr.at(displayChannel-1)) * T * R).getInverse().getPtr());
+		ofRotate(rRand(1), ofRandom(1), ofRandom(1), ofRandom(1));
+		ofTranslate(rRand(5), rRand(5), rRand(5));
 		
 		if( !saveImages && drawVoxel ) {
 			voxel.drawVertices();

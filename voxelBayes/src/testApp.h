@@ -70,8 +70,8 @@ class testApp : public ofBaseApp{
 	
 	ofVboMesh mesh;
 	ofVboMesh voxel;
-	ofVboMesh background;
-	ofImage backImage;
+	ofVboMesh background, background2;
+	ofImage backImage, backImage2;
 	ofEasyCam cam;
 	
 	static const int h = 768;
