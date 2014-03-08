@@ -83,6 +83,7 @@ class testApp : public ofBaseApp{
 	francoPhotofui p[NUM_PERS];
 	int displayChannel;
 	bool doProcess;
+	bool saveImages;
 	bool drawForeground, drawBackground;
 	
 	float f;

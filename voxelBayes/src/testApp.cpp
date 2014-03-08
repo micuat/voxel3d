@@ -37,6 +37,9 @@ void testApp::setup(){
 		if(i % 2 == 0) {
 			pre.rotate(-30, 1, 0, 0);
 			pre.translate(0, 750, 0);
+		} else {
+			pre.rotate(30, 1, 0, 0);
+			pre.translate(0, -750, 0);
 		}
 		R.makeIdentityMatrix();
 		R.rotate(i * 360 / (Extr.size() - 1), 0, 1, 0);
@@ -68,6 +71,7 @@ void testApp::setup(){
 	doProcess = false;
 	drawForeground = true;
 	drawBackground = true;
+	saveImages = false;
 }
 
 //--------------------------------------------------------------
@@ -87,8 +91,8 @@ void testApp::update(){
 		}
 		
 		francoParamf fparam;
-		fparam.pD = 0.9;
-		fparam.pFA = 0.1;
+		fparam.pD = 0.8;
+		fparam.pFA = 0.2;
 		fparam.k = 3;
 		francoVoxelf v;
 		v = francoReconstructfui(p, NUM_PERS, fparam);
@@ -218,31 +222,43 @@ void testApp::draw(){
 		glMatrixMode(GL_PROJECTION);
 		glMultMatrixf(ofMatrix4x4::getTransposedOf(Extr.at(displayChannel-1)).getInverse().getPtr());
 		
-		// add noise
-		ofTranslate(rRand(20), rRand(20), rRand(20));
-		ofRotate(rRand(10), ofRandom(1), ofRandom(1), ofRandom(1));
+		if( !saveImages ) {
+			voxel.drawVertices();
+		}
+		
+		if( saveImages ) {
+			// add noise
+			ofTranslate(rRand(10), rRand(10), rRand(10));
+			ofRotate(rRand(2), ofRandom(1), ofRandom(1), ofRandom(1));
+		}
 		
 		ofImage image;
 		
 		drawBack();
 		
-		image.allocate(w, h, OF_IMAGE_COLOR_ALPHA);
-		image.grabScreen(0, 0, w, h);
-		image.setImageType(OF_IMAGE_COLOR_ALPHA);
-		//image.saveImage(ofToString(displayChannel) + "back.png");
-		backs.push_back(image);
+		if( saveImages ) {
+			image.allocate(w, h, OF_IMAGE_COLOR_ALPHA);
+			image.grabScreen(0, 0, w, h);
+			image.setImageType(OF_IMAGE_COLOR_ALPHA);
+			//image.saveImage(ofToString(displayChannel) + "back.png");
+			backs.push_back(image);
+		}
 		
 		drawFore(false);
 		
-		image.allocate(w, h, OF_IMAGE_COLOR_ALPHA);
-		image.grabScreen(0, 0, w, h);
-		image.setImageType(OF_IMAGE_COLOR_ALPHA);
-		//image.saveImage(ofToString(displayChannel) + ".png");
-		images.push_back(image);
-		displayChannel++;
+		if( saveImages ) {
+			image.allocate(w, h, OF_IMAGE_COLOR_ALPHA);
+			image.grabScreen(0, 0, w, h);
+			image.setImageType(OF_IMAGE_COLOR_ALPHA);
+			//image.saveImage(ofToString(displayChannel) + ".png");
+			images.push_back(image);
+			displayChannel++;
+		}
+		
 		if( displayChannel > NUM_PERS ) {
 			displayChannel = 0;
 			doProcess = true;
+			saveImages = false;
 		}
 	}
 }
@@ -252,7 +268,8 @@ void testApp::keyPressed(int key){
 	if( key == ' ' ) {
 		images.clear();
 		backs.clear();
-		displayChannel = (displayChannel + 1);
+		displayChannel = 1;
+		saveImages = true;
 	}
 	
 	if( key == 'd' ) {
@@ -260,6 +277,12 @@ void testApp::keyPressed(int key){
 	}
 	if( key == 'f' ) {
 		drawBackground = !drawBackground;
+	}
+	if( key == OF_KEY_RIGHT ) {
+		displayChannel = (displayChannel + 1);
+		if( displayChannel > NUM_PERS ) {
+			displayChannel = 0;
+		}
 	}
 }
 
