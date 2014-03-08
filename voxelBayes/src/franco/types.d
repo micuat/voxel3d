@@ -77,28 +77,28 @@ public:
 		auto mvn = _mvnmap[pos[0, 0], pos[1, 0]];
 		if(!isNaN(mvn)) return mvn;
 		
-		auto fore = toArray!Tsize(foreground(pos));
+		auto fore = toArray!(Tmat, Tsize)(foreground(pos));
 		
-		auto ns = neighbors(pos, w, h, 7);
-		ubyte[Tsize][] backArray;
+		auto ns = neighbors(pos, w, h, 5);
+		Tmat[Tsize][] backArray;
 		
 		foreach(ref neighbor; ns) {
-			backArray ~= toArray!Tsize(background(neighbor));
+			backArray ~= toArray!(Tmat, Tsize)(background(neighbor));
 		}
 		
-		auto m = mean!(ubyte, Tsize, Tmat)(backArray);
-		auto cov = covariance!(ubyte, Tsize, Tmat)(backArray, m);
-		mvn = mvnpdf!(ubyte, Tsize, Tmat)(fore, m, cov);
+		auto m = mean!(Tmat, Tsize)(backArray);
+		auto cov = covariance!(Tmat, Tsize)(backArray, m);
+		mvn = mvnpdf!(Tmat, Tsize)(fore, m, cov);
 		_mvnmap[pos[0, 0], pos[1, 0]] = mvn;
 		return mvn;
 	}
 	
-	ubyte[T] toArray(uint T)(Timg pixel) {
-		ubyte[T] rgb;
+	T[N] toArray(T, uint N)(Timg pixel) {
+		T[N] rgb;
 		Timg rawrgb = pixel;
 		
-		foreach(i; 0..T) {
-			rgb[i] = rawrgb & 255;
+		foreach(i; 0..N) {
+			rgb[i] = cast(T)(rawrgb & 255);
 			rawrgb = rawrgb >> 8;
 		}
 		
@@ -221,7 +221,7 @@ public:
 						isb = model.isBack!(int, 1)(neighbor);
 					} else static if(Timg.sizeof == 4) {
 						isb = model.isBack!(int, 3)(neighbor);
-					}						
+					}
 					p1 = _pD * (1.0 / 255) + (1 - _pD) * isb;
 					p0 = ((_pD + _pFA) * (1.0 / 255) + (2 - _pD - _pFA) * isb) * 0.5;
 					pFill *= p1 / p0;

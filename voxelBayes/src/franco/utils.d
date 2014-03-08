@@ -26,39 +26,37 @@ MatrixView!int[] neighbors(int cx, int cy, int w, int h, int k) {
 	return ns;
 }
 
-MatrixView!Tout mean(Tin, Tin N, Tout)(Tin[N][] arr) {
-	auto m = matrix!Tout(N, 1, 0);
+MatrixView!T mean(T, uint N)(T[N][] arr) {
+	auto m = matrix!T(N, 1, 0);
 	
 	foreach(ref tuple; arr) {
 		// tuple[N]
-		foreach(int i, ref elem; tuple) {
-			m[i, 0] += cast(Tout)elem;
-		}
+		m.array[] += tuple[];
 	}
 	
-	return m.div(cast(Tout)arr.length);
+	return m.div(cast(T)arr.length);
 }
 
-MatrixView!Tout covariance(Tin, Tin N, Tout)(Tin[N][] arr, MatrixView!Tout m) {
-	auto cov = matrix!Tout(N, N);
+MatrixView!T covariance(T, uint N)(T[N][] arr, MatrixView!T m) {
+	auto cov = matrix!T(N, N);
 	
-	Tout[N][] diff;
+	T[N][] diff;
 	diff.length = arr.length;
 	
 	foreach(j; 0..diff.length) {
 		foreach(i, ref x; diff[j]) {
-			x = cast(Tout)arr[j][i] - m[i, 0];
+			x = arr[j][i] - m[i, 0];
 			x = x * x;
 		}
 	}
 	
 	foreach(ii; 0..N) {
 		foreach(jj; ii..N) {
-			Tout sum = 0;
+			T sum = 0;
 			foreach(i; 0..diff.length) {
 				sum += diff[i][ii] * diff[i][jj];
 			}
-			cov[ii, jj] = sqrt(sum / cast(Tout)diff.length);
+			cov[ii, jj] = sqrt(sum / cast(T)diff.length);
 			if(ii != jj) {
 				cov[jj, ii] = cov[ii, jj];
 			}
@@ -68,7 +66,7 @@ MatrixView!Tout covariance(Tin, Tin N, Tout)(Tin[N][] arr, MatrixView!Tout m) {
 	return cov;
 }
 
-Tout mvnpdf(Tin, Tin N, Tout)(Tin[N] sample, MatrixView!Tout m, MatrixView!Tout cov) {
+T mvnpdf(T, uint N)(T[N] sample, MatrixView!T m, MatrixView!T cov) {
 	static if(N == 1) {
 		if(cov[0, 0] == 0) {
 			// homogeneous background; this is tricky
@@ -85,7 +83,7 @@ Tout mvnpdf(Tin, Tin N, Tout)(Tin[N] sample, MatrixView!Tout m, MatrixView!Tout 
 	} else {
 		auto covInv = cov.copy;
 		auto sv = pseudoInvert(covInv);
-		Tout pdet = 1;
+		T pdet = 1;
 		int count = 0;
 		foreach(s; sv) {
 			if(s > 0) {
@@ -106,10 +104,8 @@ Tout mvnpdf(Tin, Tin N, Tout)(Tin[N] sample, MatrixView!Tout m, MatrixView!Tout 
 		
 		//Tout coeff = pow(2 * PI, -0.5*count) /= sqrt(pdet);
 		
-		auto x = matrix!Tout(N, 1);
-		foreach(i; 0..N) {
-			x[i, 0] = sample[i];
-		}
+		auto x = matrix!T(N, 1);
+		x.array[] = sample[];
 		auto diff = x.sub(m);
 		auto power = diff.dot(covInv.mul(diff));
 		auto ret = exp(-0.5 * power);
