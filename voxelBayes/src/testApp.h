@@ -3,7 +3,7 @@
 #include "ofMain.h"
 #include "ofxOpenCv.h"
 
-#define NUM_PERS 8 + 1
+#define NUM_PERS 8
 
 extern "C" {
 	// float-ubyte

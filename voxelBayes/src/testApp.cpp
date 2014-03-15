@@ -40,27 +40,13 @@ void testApp::setup(){
 		
 		Intr.at(i) = proj;
 	}		
-	for( int i = 0; i < Extr.size() - 1; i++ ) {
-		ofMatrix4x4 pre;
-		pre.makeIdentityMatrix();
-		if(i % 2 == 0) {
-			pre.rotate(-30, 1, 0, 0);
-			pre.translate(0, 750, 0);
-		} else {
-			pre.rotate(30, 1, 0, 0);
-			pre.translate(0, -750, 0);
-		}
+	for( int i = 0; i < Extr.size(); i++ ) {
 		R.makeIdentityMatrix();
 		R.rotate(i * 360 / (Extr.size() - 1), 0, 1, 0);
 		T.makeIdentityMatrix();
 		T.translate(0, 0, 1500);
-		Extr.at(i) = ofMatrix4x4::getTransposedOf(pre * T * R);
+		Extr.at(i) = ofMatrix4x4::getTransposedOf(T * R);
 	}
-	R.makeIdentityMatrix();
-	R.rotate(-90, 1, 0, 0);
-	T.makeIdentityMatrix();
-	T.translate(0, 1500, 0);
-	Extr.at(Extr.size() - 1) = ofMatrix4x4::getTransposedOf(R * T);
 	
 	float hside = 2000;
 //	background = ofMesh::box(side, side, side);
@@ -141,13 +127,6 @@ void testApp::drawFore(bool wire) {
 	ofPushStyle();
 	
 	ofPushMatrix();
-	ofTranslate(200, 0, 0);
-	if( wire ) mesh.drawWireframe();
-	else mesh.drawFaces();
-	ofPopMatrix();
-	
-	ofPushMatrix();
-	ofTranslate(-200, 0, 0);
 	if( wire ) mesh.drawWireframe();
 	else mesh.drawFaces();
 	ofPopMatrix();
