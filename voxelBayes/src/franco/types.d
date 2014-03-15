@@ -73,13 +73,13 @@ public:
 		_background.array[0..h*w] = fp.background[0..h*w];
 	}
 	
-	Tmat isBack(T, uint Tsize)(MatrixView!T pos) {
+	Tmat isBack(T, uint Tsize)(MatrixView!T pos, int k) {
 		auto mvn = _mvnmap[pos[0, 0], pos[1, 0]];
 		if(!isNaN(mvn)) return mvn;
 		
 		auto fore = toArray!(Tmat, Tsize)(foreground(pos));
 		
-		auto ns = neighbors(pos, w, h, 5);
+		auto ns = neighbors(pos, w, h, k);
 		Tmat[Tsize][] backArray;
 		
 		foreach(ref neighbor; ns) {
@@ -218,9 +218,9 @@ public:
 					Tmat p1, p0;
 					Tmat isb;
 					static if(Timg.sizeof == 1) {
-						isb = model.isBack!(int, 1)(neighbor);
+						isb = model.isBack!(int, 1)(neighbor, _kbg);
 					} else static if(Timg.sizeof == 4) {
-						isb = model.isBack!(int, 3)(neighbor);
+						isb = model.isBack!(int, 3)(neighbor, _kbg);
 					}
 					p1 = _pD * (1.0 / 255) + (1 - _pD) * isb;
 					p0 = ((_pD + _pFA) * (1.0 / 255) + (2 - _pD - _pFA) * isb) * 0.5;
@@ -241,6 +241,7 @@ public:
 			_pD = fparam.pD;
 			_pFA = fparam.pFA;
 			_k = fparam.k;
+			_kbg = fparam.kbg;
 		}
 		
 		// set model pointer and initialize
@@ -302,7 +303,7 @@ public:
 	}
 	
 	Tmat _pD, _pFA;
-	int _k;
+	int _k, _kbg;
 	
 private:
 	photoModel!(Tmat, Timg)[] _models;

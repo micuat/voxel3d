@@ -102,6 +102,7 @@ void testApp::update(){
 		fparam.pD = 0.9;
 		fparam.pFA = 0.1;
 		fparam.k = 1;
+		fparam.kbg = 11;
 		francoVoxelf v;
 		v = francoReconstructfui(p, NUM_PERS, fparam);
 		
