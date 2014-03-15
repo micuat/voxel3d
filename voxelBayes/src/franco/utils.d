@@ -70,7 +70,7 @@ T mvnpdf(T, uint N)(T[N] sample, MatrixView!T m, MatrixView!T cov) {
 	static if(N == 1) {
 		if(cov[0, 0] == 0) {
 			// homogeneous background; this is tricky
-			if(!approxEqual(sample[0], m[0, 0], 0.1)) {
+			if(!approxEqual(sample[0], m[0, 0], 1.5)) {
 				return 0;
 			} else {
 				return 1;
@@ -94,9 +94,9 @@ T mvnpdf(T, uint N)(T[N] sample, MatrixView!T m, MatrixView!T cov) {
 		if(count == 0) {
 			// homogeneous background; this is tricky
 			foreach(i, s; sample) {
-				if(!approxEqual(s, m[i, 0], 0.1)) {
+				if(!approxEqual(s, m[i, 0], 1.5)) {
 					return 0;
-				} 
+				}
 			}
 				
 			return 1;
