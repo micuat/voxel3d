@@ -78,6 +78,7 @@ T normpdf(T)(T sample, T m, T cov) {
 	auto coeff = M_2_SQRTPI / 2 * SQRT1_2 / cov; // 1/sqrt(2pi) cov
 	auto diff = sample - m;
 	auto power = diff * diff / cov / cov;
+	//return exp(-0.5 * power);
 	return coeff * exp(-0.5 * power);
 }
 
@@ -106,13 +107,14 @@ T mvnpdf(T, uint N)(T[N] sample, MatrixView!T m, MatrixView!T cov) {
 			return 1;
 		}
 		
-		T coeff = pow(M_2_SQRTPI / 2 * SQRT1_2, count) / sqrt(pdet);
+		//T coeff = pow(M_2_SQRTPI / 2 * SQRT1_2, count) / sqrt(pdet);
 		
 		auto x = matrix!T(N, 1);
 		x.array[] = sample[];
 		auto diff = x.sub(m);
 		auto power = diff.dot(covInv.mul(diff));
-		auto ret = coeff * exp(-0.5 * power);
+		auto ret = exp(-0.5 * power);
+		//auto ret = coeff * exp(-0.5 * power);
 		
 		if(power < 0) {
 			ret = 1;
