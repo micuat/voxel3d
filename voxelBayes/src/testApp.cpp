@@ -44,7 +44,7 @@ void testApp::setup(){
 		R.makeIdentityMatrix();
 		R.rotate(i * 360 / Extr.size(), 0, 1, 0);
 		T.makeIdentityMatrix();
-		T.translate(0, 0, 2.335e3);
+		T.translate(0, 0, 2000);
 		Extr.at(i) = ofMatrix4x4::getTransposedOf(T * R);
 	}
 	
@@ -276,7 +276,7 @@ void testApp::draw(){
 		
 		if( saveImages ) {
 			if( scanMode > 0 )
-				image.loadImage(name + "/shot" + ofToString(displayChannel-1, 2, '0') + ".jpg");
+				image.loadImage(name + "/shot" + ofToString((displayChannel-1)*2, 2, '0') + ".jpg");
 			else {
 				image.allocate(w, h, OF_IMAGE_COLOR_ALPHA);
 				image.grabScreen(0, 0, w, h);
