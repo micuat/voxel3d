@@ -251,8 +251,9 @@ public:
 					} else static if(Timg.sizeof == 4) {
 						isb = model.isBack!(int, 3, M)(neighbor, _kbg);
 					}
+					Tmat pR = 0.5;
 					p1 = _pD * (1.0 / 255) + (1 - _pD) * isb;
-					p0 = ((_pD + _pFA) * (1.0 / 255) + (2 - _pD - _pFA) * isb) * 0.5;
+					p0 = ((_pD * pR + _pFA * (1 - pR)) * (1.0 / 255) + ((1 - _pD) * pR + (1 - _pFA) * (1 - pR)) * isb);
 					pFill *= p1 / p0;
 				}
 			}
@@ -315,8 +316,9 @@ public:
 				}
 			}
 			center[] /= _models.length;
+			center[1] += length*0.125/2;
 			center.writeln;
-			setDimensions(length * 0.5, point3!Tmat(center), 50);
+			setDimensions(length * 0.25, point3!Tmat(center), 50);
 		}
 		
 		francoVoxel!Tmat fVoxel() {

@@ -3,7 +3,7 @@
 #include "ofMain.h"
 #include "ofxOpenCv.h"
 
-#define NUM_PERS 8
+#define NUM_PERS 16
 
 extern "C" {
 	// float-ubyte
@@ -96,4 +96,6 @@ class testApp : public ofBaseApp{
 	float cy;
 	
 	float nearDist, farDist;
+	
+	int scanMode;
 };

@@ -22,14 +22,14 @@ void testApp::setup(){
 	
 	ofMatrix4x4 R, T;
 	
-	f = 1500;
+	f = 1766.4;
 	fx = f;
 	fy = f;
 	cx = w/2 + 0.5;
 	cy = h/2 + 0.5;
 	
 	nearDist = 0.1;
-	farDist = 10000.0;
+	farDist = 10000;
 	
 	
 	for( int i = 0; i < Extr.size(); i++ ) {
@@ -42,13 +42,13 @@ void testApp::setup(){
 	}		
 	for( int i = 0; i < Extr.size(); i++ ) {
 		R.makeIdentityMatrix();
-		R.rotate(i * 360 / (Extr.size() - 1), 0, 1, 0);
+		R.rotate(i * 360 / Extr.size(), 0, 1, 0);
 		T.makeIdentityMatrix();
-		T.translate(0, 0, 1500);
+		T.translate(0, 0, 2.335e3);
 		Extr.at(i) = ofMatrix4x4::getTransposedOf(T * R);
 	}
 	
-	float hside = 2000;
+	float hside = 2500;
 //	background = ofMesh::box(side, side, side);
 	background.setMode(OF_PRIMITIVE_TRIANGLE_STRIP);
 	background.addVertex(ofVec3f(-hside,  hside, -hside));
@@ -80,6 +80,8 @@ void testApp::setup(){
 	drawBackground = true;
 	drawVoxel = true;
 	saveImages = false;
+	
+	scanMode = 0;
 }
 
 //--------------------------------------------------------------
@@ -99,15 +101,16 @@ void testApp::update(){
 		}
 		
 		francoParamf fparam;
-		fparam.pD = 0.9;
-		fparam.pFA = 0.1;
+		fparam.pD = 0.95;
+		fparam.pFA = 0.05;
 		fparam.k = 1;
 		fparam.kbg = 3;
 		francoVoxelf v;
-		v = francoReconstructCovfui(p, NUM_PERS, fparam);
+		v = francoReconstructParzenfui(p, NUM_PERS, fparam);
 		
 		ofVec3f center(v.center[0], v.center[1], v.center[2]);
 		int n = v.numVoxels;
+		voxel.clear();
 		for( int i = 0; i < n*n*n; i++ ) {
 			float p = *(v.pdf + i);
 			if( p > 0.75 ) {
@@ -202,6 +205,21 @@ void testApp::draw(){
 		cam.end();
 	} else {
 		
+		string name;
+		switch( scanMode ) {
+			case 0:
+				break;
+			case 1:
+				name = "shoe";
+				break;
+			case 2:
+				name = "man";
+				break;
+			case 3:
+				name = "nanoha";
+				break;
+		}
+		
 		ofSetupScreenPerspective(w, h);
 		
 //		float w = ofGetScreenWidth();
@@ -241,10 +259,14 @@ void testApp::draw(){
 		}
 		
 		if( saveImages ) {
-			image.allocate(w, h, OF_IMAGE_COLOR_ALPHA);
-			image.grabScreen(0, 0, w, h);
+			if( scanMode > 0 )
+				image.loadImage(name + "/shotback.jpg");
+			else {
+				image.allocate(w, h, OF_IMAGE_COLOR_ALPHA);
+				image.grabScreen(0, 0, w, h);
+				//image.saveImage(ofToString(displayChannel) + "back.png");
+			}
 			image.setImageType(OF_IMAGE_COLOR_ALPHA);
-			//image.saveImage(ofToString(displayChannel) + "back.png");
 			backs.push_back(image);
 		}
 		
@@ -253,10 +275,14 @@ void testApp::draw(){
 		}
 		
 		if( saveImages ) {
-			image.allocate(w, h, OF_IMAGE_COLOR_ALPHA);
-			image.grabScreen(0, 0, w, h);
+			if( scanMode > 0 )
+				image.loadImage(name + "/shot" + ofToString(displayChannel-1, 2, '0') + ".jpg");
+			else {
+				image.allocate(w, h, OF_IMAGE_COLOR_ALPHA);
+				image.grabScreen(0, 0, w, h);
+				//image.saveImage(ofToString(displayChannel) + ".png");
+			}
 			image.setImageType(OF_IMAGE_COLOR_ALPHA);
-			//image.saveImage(ofToString(displayChannel) + ".png");
 			images.push_back(image);
 			displayChannel++;
 		}
@@ -267,6 +293,8 @@ void testApp::draw(){
 			saveImages = false;
 		}
 	}
+	
+	ofDrawBitmapString(ofToString(scanMode), 10, 20);
 }
 
 //--------------------------------------------------------------
@@ -292,6 +320,9 @@ void testApp::keyPressed(int key){
 		if( displayChannel > NUM_PERS ) {
 			displayChannel = 0;
 		}
+	}
+	if( key == 'n' ) {
+		scanMode = (scanMode + 1) % 4;
 	}
 }
 
