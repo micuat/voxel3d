@@ -71,7 +71,7 @@ class testApp : public ofBaseApp{
 	void drawCameras();
 	
 	ofVboMesh mesh;
-	ofVboMesh voxel;
+	vector<ofVboMesh> voxels;
 	ofVboMesh background, background2;
 	ofImage backImage, backImage2;
 	ofEasyCam cam;

@@ -17,6 +17,8 @@ void testApp::setup(){
 			mesh.addColor(ofColor::lightGreen);
 	}
 	
+	voxels.resize(4);
+	
 	Intr.resize(NUM_PERS);
 	Extr.resize(NUM_PERS);
 	
@@ -110,7 +112,7 @@ void testApp::update(){
 		
 		ofVec3f center(v.center[0], v.center[1], v.center[2]);
 		int n = v.numVoxels;
-		voxel.clear();
+		voxels.at(scanMode).clear();
 		for( int i = 0; i < n*n*n; i++ ) {
 			float p = *(v.pdf + i);
 			if( p > 0.75 ) {
@@ -118,8 +120,8 @@ void testApp::update(){
 				pos.x = i % n - n / 2;
 				pos.y = (i / n) % n - n / 2;
 				pos.z = i / (n * n) - n / 2;
-				voxel.addVertex((pos * v.side / v.numVoxels) + center);
-				voxel.addColor(ofFloatColor(ofMap(p, 0.5, 1.0, 0.0, 1.0)));
+				voxels.at(scanMode).addVertex((pos * v.side / v.numVoxels) + center);
+				voxels.at(scanMode).addColor(ofFloatColor(ofMap(p, 0.5, 1.0, 0.0, 1.0)));
 			}
 		}
 		
@@ -194,7 +196,7 @@ void testApp::draw(){
 			drawFore(true);
 		}
 		if( drawVoxel ) {
-			voxel.drawVertices();
+			voxels.at(scanMode).drawVertices();
 		}
 		if( drawBackground ) {
 			drawBack();
@@ -249,7 +251,7 @@ void testApp::draw(){
 		ofTranslate(rRand(5), rRand(5), rRand(5));
 		
 		if( !saveImages && drawVoxel ) {
-			voxel.drawVertices();
+			voxels.at(scanMode).drawVertices();
 		}
 		
 		ofImage image;
@@ -306,6 +308,9 @@ void testApp::keyPressed(int key){
 		saveImages = true;
 	}
 	
+	if( key == 'a' ) {
+		ofToggleFullscreen();
+	}
 	if( key == 'd' ) {
 		drawForeground = !drawForeground;
 	}
