@@ -9,6 +9,12 @@ import scid.matrix;
 import franco.matrix;
 import franco.utils;
 
+enum BgModel
+{
+	Cov, // covariance matrix
+	Parzen // Parzen window
+}
+
 struct francoPhoto(Tmat, Timg) {
 	Tmat intrinsics[9];
 	Tmat extrinsics[12];
@@ -73,24 +79,47 @@ public:
 		_background.array[0..h*w] = fp.background[0..h*w];
 	}
 	
-	Tmat isBack(T, uint Tsize)(MatrixView!T pos, int k) {
-		auto mvn = _mvnmap[pos[0, 0], pos[1, 0]];
-		if(!isNaN(mvn)) return mvn;
-		
-		auto fore = toArray!(Tmat, Tsize)(foreground(pos));
-		
-		auto ns = neighbors(pos, w, h, k);
-		Tmat[Tsize][] backArray;
-		
-		foreach(ref neighbor; ns) {
-			backArray ~= toArray!(Tmat, Tsize)(background(neighbor));
+	Tmat isBack(T, uint Tsize, BgModel M)(MatrixView!T pos, int k) {
+		static if(M == BgModel.Cov) {
+			auto mvn = _mvnmap[pos[0, 0], pos[1, 0]];
+			if(!isNaN(mvn)) return mvn;
+			
+			auto fore = toArray!(Tmat, Tsize)(foreground(pos));
+			
+			auto ns = neighbors(pos, w, h, k);
+			Tmat[Tsize][] backArray;
+			
+			foreach(ref neighbor; ns) {
+				backArray ~= toArray!(Tmat, Tsize)(background(neighbor));
+			}
+			
+			auto m = mean!(Tmat, Tsize)(backArray);
+			auto cov = covariance!(Tmat, Tsize)(backArray, m);
+			mvn = mvnpdf!(Tmat, Tsize)(fore, m, cov);
+			_mvnmap[pos[0, 0], pos[1, 0]] = mvn;
+			return mvn;
+		} else static if(M == BgModel.Parzen) {
+			auto mvn = _mvnmap[pos[0, 0], pos[1, 0]];
+			if(!isNaN(mvn)) return mvn;
+			
+			auto fore = toArray!(Tmat, Tsize)(foreground(pos));
+			
+			auto ns = neighbors(pos, w, h, k);
+			
+			mvn = 0;
+			foreach(ref neighbor; ns) {
+				auto back = toArray!(Tmat, Tsize)(background(neighbor));
+				Tmat diffSq = 0;
+				foreach(i; 0..Tsize) {
+					diffSq += (fore[i] - back[i]) * (fore[i] - back[i]);
+				}
+				mvn += normpdf!(Tmat)(sqrt(diffSq), 0, 20);
+			}
+			mvn /= ns.length;
+			
+			_mvnmap[pos[0, 0], pos[1, 0]] = mvn;
+			return mvn;
 		}
-		
-		auto m = mean!(Tmat, Tsize)(backArray);
-		auto cov = covariance!(Tmat, Tsize)(backArray, m);
-		mvn = mvnpdf!(Tmat, Tsize)(fore, m, cov);
-		_mvnmap[pos[0, 0], pos[1, 0]] = mvn;
-		return mvn;
 	}
 	
 	T[N] toArray(T, uint N)(Timg pixel) {
@@ -150,7 +179,7 @@ private:
 	MatrixView!Tmat _mvnmap; // transposed
 }
 
-class voxelLike(Tmat, Timg) {
+class voxelLike(Tmat, Timg, BgModel M) {
 public:
 	this() {
 	}
@@ -218,9 +247,9 @@ public:
 					Tmat p1, p0;
 					Tmat isb;
 					static if(Timg.sizeof == 1) {
-						isb = model.isBack!(int, 1)(neighbor, _kbg);
+						isb = model.isBack!(int, 1, M)(neighbor, _kbg);
 					} else static if(Timg.sizeof == 4) {
-						isb = model.isBack!(int, 3)(neighbor, _kbg);
+						isb = model.isBack!(int, 3, M)(neighbor, _kbg);
 					}
 					p1 = _pD * (1.0 / 255) + (1 - _pD) * isb;
 					p0 = ((_pD + _pFA) * (1.0 / 255) + (2 - _pD - _pFA) * isb) * 0.5;

@@ -66,20 +66,24 @@ MatrixView!T covariance(T, uint N)(T[N][] arr, MatrixView!T m) {
 	return cov;
 }
 
+T normpdf(T)(T sample, T m, T cov) {
+	if(cov == 0) {
+		// homogeneous background; this is tricky
+		if(!approxEqual(sample, m, 1.5)) {
+			return 0;
+		} else {
+			return 1;
+		}
+	}
+	auto coeff = M_2_SQRTPI / 2 * SQRT1_2 / cov; // 1/sqrt(2pi) cov
+	auto diff = sample - m;
+	auto power = diff * diff / cov / cov;
+	return coeff * exp(-0.5 * power);
+}
+
 T mvnpdf(T, uint N)(T[N] sample, MatrixView!T m, MatrixView!T cov) {
 	static if(N == 1) {
-		if(cov[0, 0] == 0) {
-			// homogeneous background; this is tricky
-			if(!approxEqual(sample[0], m[0, 0], 1.5)) {
-				return 0;
-			} else {
-				return 1;
-			}
-		}
-		//auto coeff = pow(2 * PI, -0.5) / cov[0, 0];
-		auto diff = sample[0] - m[0, 0];
-		auto power = diff * diff / cov[0, 0] / cov[0, 0];
-		return exp(-0.5 * power);
+		return normpdf(sample[0], m[0, 0], cov[0, 0]);
 	} else {
 		auto covInv = cov.copy;
 		auto sv = pseudoInvert(covInv);
@@ -98,17 +102,17 @@ T mvnpdf(T, uint N)(T[N] sample, MatrixView!T m, MatrixView!T cov) {
 					return 0;
 				}
 			}
-				
+			
 			return 1;
 		}
 		
-		//Tout coeff = pow(2 * PI, -0.5*count) /= sqrt(pdet);
+		T coeff = pow(M_2_SQRTPI / 2 * SQRT1_2, count) / sqrt(pdet);
 		
 		auto x = matrix!T(N, 1);
 		x.array[] = sample[];
 		auto diff = x.sub(m);
 		auto power = diff.dot(covInv.mul(diff));
-		auto ret = exp(-0.5 * power);
+		auto ret = coeff * exp(-0.5 * power);
 		
 		if(power < 0) {
 			ret = 1;

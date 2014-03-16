@@ -42,8 +42,10 @@ extern "C" {
 		float *pdf;
 	};
 	
-	struct francoVoxelf francoReconstructfub(struct francoPhotofub *, int, struct francoParamf);
-	struct francoVoxelf francoReconstructfui(struct francoPhotofui *, int, struct francoParamf);
+	struct francoVoxelf francoReconstructCovfub(struct francoPhotofub *, int, struct francoParamf);
+	struct francoVoxelf francoReconstructCovfui(struct francoPhotofui *, int, struct francoParamf);
+	struct francoVoxelf francoReconstructParzenfub(struct francoPhotofub *, int, struct francoParamf);
+	struct francoVoxelf francoReconstructParzenfui(struct francoPhotofui *, int, struct francoParamf);
 };
 
 class testApp : public ofBaseApp{

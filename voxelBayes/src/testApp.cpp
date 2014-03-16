@@ -102,15 +102,15 @@ void testApp::update(){
 		fparam.pD = 0.9;
 		fparam.pFA = 0.1;
 		fparam.k = 1;
-		fparam.kbg = 11;
+		fparam.kbg = 3;
 		francoVoxelf v;
-		v = francoReconstructfui(p, NUM_PERS, fparam);
+		v = francoReconstructCovfui(p, NUM_PERS, fparam);
 		
 		ofVec3f center(v.center[0], v.center[1], v.center[2]);
 		int n = v.numVoxels;
 		for( int i = 0; i < n*n*n; i++ ) {
 			float p = *(v.pdf + i);
-			if( p > 0.5 ) {
+			if( p > 0.75 ) {
 				ofVec3f pos;
 				pos.x = i % n - n / 2;
 				pos.y = (i / n) % n - n / 2;

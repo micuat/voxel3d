@@ -8,14 +8,21 @@ import scid.matrix;
 import franco.matrix;
 import franco.types;
 
-extern (C) francoVoxel!float francoReconstructfub(francoPhoto!(float, ubyte) *fp, int numPhoto, francoParam!float fparam) {
-	return francoReconstruct!(float, ubyte)(fp, numPhoto, fparam);
+extern (C) francoVoxel!float francoReconstructCovfub(francoPhoto!(float, ubyte) *fp, int numPhoto, francoParam!float fparam) {
+	return francoReconstruct!(float, ubyte, BgModel.Cov)(fp, numPhoto, fparam);
 }
-extern (C) francoVoxel!float francoReconstructfui(francoPhoto!(float, uint) *fp, int numPhoto, francoParam!float fparam) {
-	return francoReconstruct!(float, uint)(fp, numPhoto, fparam);
+extern (C) francoVoxel!float francoReconstructCovfui(francoPhoto!(float, uint) *fp, int numPhoto, francoParam!float fparam) {
+	return francoReconstruct!(float, uint, BgModel.Cov)(fp, numPhoto, fparam);
 }
 
-francoVoxel!Tmat francoReconstruct(Tmat, Timg)(francoPhoto!(Tmat, Timg) *fp, int numPhoto, francoParam!Tmat fparam) {
+extern (C) francoVoxel!float francoReconstructParzenfub(francoPhoto!(float, ubyte) *fp, int numPhoto, francoParam!float fparam) {
+	return francoReconstruct!(float, ubyte, BgModel.Parzen)(fp, numPhoto, fparam);
+}
+extern (C) francoVoxel!float francoReconstructParzenfui(francoPhoto!(float, uint) *fp, int numPhoto, francoParam!float fparam) {
+	return francoReconstruct!(float, uint, BgModel.Parzen)(fp, numPhoto, fparam);
+}
+
+francoVoxel!Tmat francoReconstruct(Tmat, Timg, BgModel M)(francoPhoto!(Tmat, Timg) *fp, int numPhoto, francoParam!Tmat fparam) {
 	francoVoxel!Tmat fVoxel;
 	
 	photoModel!(Tmat, Timg)[] models;
@@ -28,7 +35,7 @@ francoVoxel!Tmat francoReconstruct(Tmat, Timg)(francoPhoto!(Tmat, Timg) *fp, int
 		models[i] = model;
 	}
 	
-	auto voxel = new voxelLike!(Tmat, Timg);
+	auto voxel = new voxelLike!(Tmat, Timg, M);
 	voxel.models = models;
 	voxel.parameters = fparam;
 	voxel.reconstruct;
@@ -37,7 +44,7 @@ francoVoxel!Tmat francoReconstruct(Tmat, Timg)(francoPhoto!(Tmat, Timg) *fp, int
 	return fVoxel;
 }
 
-extern (C) alias francoReconstructfub = francoReconstruct!(float, ubyte);
+//extern (C) alias francoReconstructfub = francoReconstruct!(float, ubyte);
 
 extern(C) int ofmain();
 void main() {
