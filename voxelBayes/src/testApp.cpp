@@ -329,6 +329,11 @@ void testApp::keyPressed(int key){
 	if( key == 'n' ) {
 		scanMode = (scanMode + 1) % 4;
 	}
+	if( key == 'z' ) {
+		for( int i = 0; i < 4; i++ ) {
+			voxels.at(i).save(ofToDataPath(ofToString(i) + ".ply"));
+		}
+	}
 }
 
 //--------------------------------------------------------------
