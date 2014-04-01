@@ -113,7 +113,7 @@ public:
 				foreach(i; 0..Tsize) {
 					diffSq += (fore[i] - back[i]) * (fore[i] - back[i]);
 				}
-				mvn += normpdf!(Tmat)(sqrt(diffSq), 0, 20);
+				mvn += normpdf!(Tmat)(sqrt(diffSq), 0, 3);
 			}
 			mvn /= ns.length;
 			
