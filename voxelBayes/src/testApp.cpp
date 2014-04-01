@@ -113,6 +113,7 @@ void testApp::update(){
 		ofVec3f center(v.center[0], v.center[1], v.center[2]);
 		int n = v.numVoxels;
 		voxels.at(scanMode).clear();
+		
 		for( int i = 0; i < n*n*n; i++ ) {
 			float p = *(v.pdf + i);
 			if( p > 0.75 ) {
@@ -120,8 +121,12 @@ void testApp::update(){
 				pos.x = i % n - n / 2;
 				pos.y = (i / n) % n - n / 2;
 				pos.z = i / (n * n) - n / 2;
-				voxels.at(scanMode).addVertex((pos * v.side / v.numVoxels) + center);
-				voxels.at(scanMode).addColor(ofFloatColor(ofMap(p, 0.5, 1.0, 0.0, 1.0)));
+				ofMesh voxel = ofMesh::box(v.side / v.numVoxels, v.side / v.numVoxels, v.side / v.numVoxels);
+				for( int j = 0; j < voxel.getNumVertices(); j++ ) {
+					voxel.setVertex(j, voxel.getVertex(j) + pos * v.side / v.numVoxels + center);
+					voxel.addColor(ofColor(ofColor::skyBlue, (int)ofMap(p, 0.75, 1.0, 0, 255)));
+				}
+				voxels.at(scanMode).append(voxel);
 			}
 		}
 		
@@ -196,7 +201,7 @@ void testApp::draw(){
 			drawFore(true);
 		}
 		if( drawVoxel ) {
-			voxels.at(scanMode).drawVertices();
+			voxels.at(scanMode).drawFaces();
 		}
 		if( drawBackground ) {
 			drawBack();
